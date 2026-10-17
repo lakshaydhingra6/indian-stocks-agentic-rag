@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import time
@@ -16,42 +17,123 @@ from core.vector_store import StockKnowledgeStore
 
 # Page configuration
 st.set_page_config(
-    page_title="Artha-Agent: Advanced Indian Stocks Agentic RAG",
-    page_icon="🇮🇳",
+    page_title="Artha Terminal | Indian Equities Intelligence",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# Institutional Fintech CSS styling (Kite / TradingView Dark Mode Aesthetic)
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    code, pre, .number-font {
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    /* Background & Container */
     .stApp {
-        font-family: 'Inter', -apple-system, sans-serif;
+        background-color: #0b0e14;
+        color: #e2e8f0;
     }
-    .metric-card {
-        background: #1e222d;
-        border-radius: 8px;
-        padding: 12px 16px;
-        border: 1px solid #2a2e39;
-        margin-bottom: 8px;
-    }
-    .ticker-pill {
+
+    /* Pulsing Live Dot */
+    .live-pulse {
         display: inline-block;
-        padding: 3px 8px;
+        width: 8px;
+        height: 8px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+    @keyframes pulse {
+        to {
+            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+        }
+    }
+
+    /* Ticker Banner */
+    .ticker-bar {
+        background: linear-gradient(90deg, #121824 0%, #171f30 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
-        font-size: 0.8rem;
+        padding: 10px 18px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Metric Cards */
+    .terminal-card {
+        background: #131926;
+        border: 1px solid #1f293d;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 14px;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .terminal-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .badge-pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
+    .badge-green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .badge-red {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .badge-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    /* Custom Button Style */
+    .stButton>button {
+        border-radius: 10px;
         font-weight: 600;
-        margin-left: 6px;
+        font-size: 0.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #171f30;
+        color: #f1f5f9;
+        transition: all 0.2s ease;
     }
-    .pill-green {
-        background-color: rgba(38, 166, 154, 0.2);
-        color: #26a69a;
-        border: 1px solid #26a69a;
+    .stButton>button:hover {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
     }
-    .pill-red {
-        background-color: rgba(239, 83, 80, 0.2);
-        color: #ef5350;
-        border: 1px solid #ef5350;
+
+    /* Chat UI Customization */
+    .stChatMessage {
+        background-color: #111724;
+        border: 1px solid #1e283d;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -60,25 +142,23 @@ st.markdown("""
 if "agent" not in st.session_state:
     st.session_state.agent = IndianStockRAGAgent()
 if "portfolio" not in st.session_state:
-    # Sample starter portfolio
     st.session_state.portfolio = [
-        {"symbol": "RELIANCE", "qty": 10, "buy_price": 1220.0},
-        {"symbol": "TCS", "qty": 5, "buy_price": 2400.0},
-        {"symbol": "TATAMOTORS", "qty": 25, "buy_price": 850.0}
+        {"symbol": "RELIANCE", "qty": 10, "buy_price": 1220.0, "sector": "Energy"},
+        {"symbol": "TCS", "qty": 5, "buy_price": 2400.0, "sector": "IT"},
+        {"symbol": "TATAMOTORS", "qty": 20, "buy_price": 850.0, "sector": "Auto"},
+        {"symbol": "HAL", "qty": 8, "buy_price": 4300.0, "sector": "Defense"}
     ]
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "Namaste! 🙏 I am **Artha-Agent**, your Quantitative AI Research Copilot for the **Indian Stock Market (NSE/BSE)**.\n\n"
-                       "Equipped with live real-time feeds, technical engines, fundamental valuation ratios, live financial news, "
-                       "and dual-tier memory.\n\n"
-                       "**Questions you can ask me right now:**\n"
-                       "- 📊 *'What is Reliance's current price, pivot points, and technical trend?'*\n"
-                       "- 💰 *'What are the fundamentals, P/E ratio, and valuation of Infosys?'*\n"
-                       "- ⚖️ *'Compare TCS and Infosys'* (or *'How does that compare to TCS?'*)\n"
-                       "- 📰 *'What is the latest news and sentiment for Zomato / Tata Motors?'*\n"
-                       "- 📋 *'Add HAL to my watchlist with note: High defense order book'*"
+            "content": "### ⚡ Artha Quantitative Intelligence Copilot\n\n"
+                       "Welcome to **Artha Terminal**. I am an autonomous quant research copilot connected to live **NSE India** order feeds, technical indicator matrices, valuation multiples, real-time financial news, and persistent SQLite memory.\n\n"
+                       "**Quick Actions:**\n"
+                       "- Ask about any stock (e.g. *Reliance, TCS, HAL, Zomato, Trent, IRFC*)\n"
+                       "- Compare metrics: *'Compare TCS and Infosys'*\n"
+                       "- Conversational context: *'How does its RSI compare to Tata Motors?'*\n"
+                       "- Valuation & News: *'What are the fundamentals and latest news on Zomato?'*"
         }
     ]
 if "selected_symbol" not in st.session_state:
@@ -88,335 +168,436 @@ agent: IndianStockRAGAgent = st.session_state.agent
 memory: DualTierMemoryManager = agent.memory
 nse: NSEClient = agent.nse
 
-# Top Live Ticker Tape
+# --- TOP LIVE TICKER RIBBON ---
 indices = nse.get_major_indices()
 status = nse.get_market_status()
 
-tape_cols = st.columns(len(indices) + 1 if indices else 1)
-with tape_cols[0]:
-    st.markdown(f"**NSE Status**: `{status.get('status', 'Open')}`")
+# Visual Top Bar
+cols = st.columns([1.6] + [1] * len(indices))
+with cols[0]:
+    st.markdown(
+        f"<div style='padding-top:4px; font-weight:700; font-size:1.05rem;'>"
+        f"<span class='live-pulse'></span>NSE INDIA <span style='font-size:0.75rem; color:#94a3b8; font-weight:500;'>[{status.get('status', 'Open')}]</span>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
 
-for idx, (name, val) in enumerate(indices.items()):
-    with tape_cols[idx + 1]:
-        pchg = val.get("percent_change", 0)
-        color = "pill-green" if pchg >= 0 else "pill-red"
-        symbol_prefix = "+" if pchg >= 0 else ""
+for i, (idx_name, d) in enumerate(indices.items()):
+    with cols[i + 1]:
+        pchg = d.get("percent_change", 0)
+        badge = "badge-green" if pchg >= 0 else "badge-red"
+        sign = "+" if pchg >= 0 else ""
         st.markdown(
-            f"**{name}**: {val.get('value', 0):,.2f} "
-            f"<span class='ticker-pill {color}'>{symbol_prefix}{pchg:.2f}%</span>",
+            f"<div style='font-size:0.85rem; font-weight:600;'>{idx_name}</div>"
+            f"<div class='number-font' style='font-size:0.95rem; font-weight:700;'>{d.get('value', 0):,.2f} "
+            f"<span class='badge-pill {badge}'>{sign}{pchg:.2f}%</span></div>",
             unsafe_allow_html=True
         )
 
-st.divider()
+st.markdown("<hr style='border-color: rgba(255,255,255,0.07); margin-top:12px; margin-bottom:18px;'>", unsafe_allow_html=True)
 
-# Sidebar: Config, Dual-Tier Memory & Watchlist
+# --- SIDEBAR: TERMINAL CONTROLS & MEMORY RADAR ---
 with st.sidebar:
-    st.title("🇮🇳 Artha-Agent")
-    st.caption("Agentic RAG with Live NSE Data & Dual-Tier Memory")
-    
-    with st.expander("🔑 API Key & Model Settings", expanded=False):
+    st.markdown("## ⚡ ARTHA TERMINAL")
+    st.caption("Institutional AI Copilot for Indian Equities")
+
+    # API Key Configuration
+    with st.expander("🔑 AI Engine Configuration", expanded=False):
         api_key_input = st.text_input(
-            "Google Gemini API Key",
+            "Gemini API Key",
             type="password",
             value=agent.api_key or "",
-            help="Free from https://aistudio.google.com/app/apikey. If empty, deterministic smart agent mode runs!"
+            placeholder="AI Studio Key (Free)"
         )
-        if st.button("Update Key"):
+        if st.button("Apply Key", use_container_width=True):
             st.session_state.agent = IndianStockRAGAgent(api_key=api_key_input)
-            st.success("API key updated!")
+            st.success("API Key updated!")
             st.rerun()
 
-    # Memory Inspector Section
-    st.subheader("🧠 Dual-Tier Memory")
+    st.markdown("### 🧠 Dual-Tier Memory")
     
-    with st.expander("⚡ Working Memory (In-Session)", expanded=True):
-        st.write(f"**Active Ticker**: `{memory.last_mentioned_symbol or 'None'}`")
+    # Tier 1: Working Context
+    with st.container():
+        st.markdown(f"**Active Ticker**: `{memory.last_mentioned_symbol or 'None'}`")
         if memory.recent_symbols:
-            st.write(f"**Recent Tickers**: {', '.join(memory.recent_symbols)}")
-        else:
-            st.caption("No tickers mentioned yet.")
+            st.caption(f"Context Thread: {', '.join(memory.recent_symbols)}")
 
-    with st.expander("📋 Persistent Watchlist (SQLite)", expanded=True):
+    # Tier 2: Persistent SQLite Watchlist
+    with st.expander("📋 SQLite Watchlist", expanded=True):
         watchlist = memory.get_watchlist()
         if watchlist:
             for item in watchlist:
-                c1, c2 = st.columns([3, 1])
-                with c1:
-                    st.markdown(f"**{item['symbol']}** ({item['company_name']})")
+                wc1, wc2 = st.columns([3, 1])
+                with wc1:
+                    st.markdown(f"**{item['symbol']}**")
                     if item.get("notes"):
-                        st.caption(f"📝 {item['notes']}")
-                with c2:
-                    if st.button("❌", key=f"del_{item['symbol']}", help=f"Remove {item['symbol']}"):
+                        st.caption(f"📌 {item['notes']}")
+                with wc2:
+                    if st.button("×", key=f"del_side_{item['symbol']}"):
                         memory.remove_from_watchlist(item['symbol'])
                         st.rerun()
         else:
-            st.caption("Watchlist is empty. Ask: *'Add Reliance to my watchlist'*.")
+            st.caption("Watchlist empty. Tell copilot: *'Add TCS to my watchlist'*")
 
-    with st.expander("➕ Add Stock to Watchlist"):
-        add_sym = st.text_input("NSE Symbol (e.g. INFY, HAL, IRFC)", key="add_sym_input")
-        add_note = st.text_input("Notes (optional)", key="add_note_input")
-        if st.button("Save to Memory"):
-            if add_sym:
-                resolved = nse.resolve_symbol(add_sym)
-                memory.add_to_watchlist(resolved, notes=add_note)
-                st.success(f"Saved {resolved} to persistent database!")
+    # Quick Add to Watchlist
+    with st.expander("➕ Pin Stock to Watchlist"):
+        add_sym_in = st.text_input("Symbol (e.g. HAL, IRFC, TRENT)")
+        add_note_in = st.text_input("Thesis / Notes")
+        if st.button("Save to Persistent Memory", use_container_width=True):
+            if add_sym_in:
+                res_sym = nse.resolve_symbol(add_sym_in)
+                memory.add_to_watchlist(res_sym, notes=add_note_in)
+                st.success(f"Pinned {res_sym} to SQLite!")
                 st.rerun()
 
-# Main Application Tabs
-tab_chat, tab_chart, tab_portfolio, tab_knowledge = st.tabs([
-    "💬 Agentic RAG Copilot",
-    "📊 Live Interactive Chart & Technicals",
-    "💼 Portfolio P&L Tracker",
-    "📚 Vector Knowledge Store & News"
+# --- MAIN NAVIGATION TABS ---
+tab_chat, tab_chart, tab_portfolio, tab_radar = st.tabs([
+    "💬 Research Copilot",
+    "📈 Interactive Charting & Radar",
+    "💼 Portfolio & P&L Analytics",
+    "📰 Live Intelligence & Disclosures"
 ])
 
-# ----------------- TAB 1: AGENTIC RAG CHAT -----------------
+# ================= TAB 1: RESEARCH COPILOT =================
 with tab_chat:
-    st.write("##### 💡 Quick Prompt Triggers:")
-    row1 = st.columns(4)
-    if row1[0].button("📊 Reliance Live & Technicals"):
+    st.markdown("##### ⚡ Command Shortcuts:")
+    sc1, sc2, sc3, sc4 = st.columns(4)
+    if sc1.button("📊 Reliance Live & Pivots"):
         st.session_state.pending_prompt = "What is the live price, RSI, and pivot levels for Reliance?"
-    if row1[1].button("💰 Infosys Fundamentals & P/E"):
-        st.session_state.pending_prompt = "What are the fundamental valuation ratios, P/E, and ROE of Infosys?"
-    if row1[2].button("⚖️ Compare TCS vs Infosys"):
-        st.session_state.pending_prompt = "Compare TCS and Infosys in terms of valuation, price, and dividend yield."
-    if row1[3].button("📰 Zomato News & Blinkit"):
+    if sc2.button("⚖️ Compare TCS vs INFY"):
+        st.session_state.pending_prompt = "Compare TCS and Infosys in terms of valuation, P/E, and dividend yield."
+    if sc3.button("🚀 HAL Defense Order Book"):
+        st.session_state.pending_prompt = "Explain HAL defense order book, Tejas fighter aircraft, and outlook."
+    if sc4.button("📰 Zomato News & Blinkit"):
         st.session_state.pending_prompt = "What is the latest news and growth drivers for Zomato?"
 
-    row2 = st.columns(4)
-    if row2[0].button("🚀 HAL Defense Order Book"):
-        st.session_state.pending_prompt = "Explain Hindustan Aeronautics (HAL) defense order book and outlook."
-    if row2[1].button("🚂 IRFC / Railways Trend"):
-        st.session_state.pending_prompt = "What is the live quote and technical bias of IRFC?"
-    if row2[2].button("🔄 Context: Compare it with TCS"):
-        st.session_state.pending_prompt = "How does that compare to TCS?"
-    if row2[3].button("🌐 Major Indian Market Status"):
-        st.session_state.pending_prompt = "Give me a live overview of the Indian stock market and indices."
+    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
-    # Render Chat History
+    # Chat Feed
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             if "traces" in msg and msg["traces"]:
-                with st.expander("🛠️ View Agent Tool Calls & Data Retrieval", expanded=False):
+                with st.expander("🛠️ Inspect Autonomous Tool Execution Traces", expanded=False):
                     for t in msg["traces"]:
-                        st.markdown(f"**Tool Invoked**: `{t.get('tool')}`")
-                        st.json({"arguments": t.get("args"), "response_preview": t.get("output")})
+                        st.markdown(f"**Executed Tool**: `{t.get('tool')}`")
+                        st.json({"arguments": t.get("args"), "data_payload": t.get("output")})
 
-    # Chat Input
-    prompt = st.chat_input("Ask about Indian stocks, fundamentals, technicals, news, or memory...")
+    # User Input
+    user_query = st.chat_input("Enter command or question (e.g. 'Analyze Tata Motors technicals and stop-loss')...")
     if getattr(st.session_state, "pending_prompt", None):
-        prompt = st.session_state.pending_prompt
+        user_query = st.session_state.pending_prompt
         st.session_state.pending_prompt = None
 
-    if prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
+    if user_query:
+        st.session_state.messages.append({"role": "user", "content": user_query})
         with st.chat_message("user"):
-            st.markdown(prompt)
+            st.markdown(user_query)
 
         with st.chat_message("assistant"):
-            with st.spinner("Artha-Agent is executing tools & synthesizing analysis..."):
-                response_text, traces = agent.run(prompt)
-                st.markdown(response_text)
+            with st.spinner("Executing real-time tools & synthesizing intelligence..."):
+                resp, traces = agent.run(user_query)
+                st.markdown(resp)
                 if traces:
-                    with st.expander("🛠️ View Agent Tool Calls & Data Retrieval", expanded=False):
+                    with st.expander("🛠️ Inspect Autonomous Tool Execution Traces", expanded=False):
                         for t in traces:
-                            st.markdown(f"**Tool Invoked**: `{t.get('tool')}`")
-                            st.json({"arguments": t.get("args"), "response_preview": t.get("output")})
+                            st.markdown(f"**Executed Tool**: `{t.get('tool')}`")
+                            st.json({"arguments": t.get("args"), "data_payload": t.get("output")})
 
         st.session_state.messages.append({
             "role": "assistant",
-            "content": response_text,
+            "content": resp,
             "traces": traces
         })
 
-# ----------------- TAB 2: INTERACTIVE CHART & TECHNICALS -----------------
+# ================= TAB 2: INTERACTIVE CHART & GAUGES =================
 with tab_chart:
-    st.subheader("📈 Live Technical Charting & Quantitative Setup")
-    col_input, col_period = st.columns([3, 2])
-    with col_input:
-        chart_symbol_input = st.text_input(
-            "Stock Symbol (e.g. RELIANCE, TCS, HAL, ZOMATO, TRENT)",
+    st.subheader("📈 Institutional Technical Radar")
+    
+    col_sym, col_tf, col_action = st.columns([3, 2, 2])
+    with col_sym:
+        target_symbol = st.text_input(
+            "Ticker Symbol",
             value=memory.last_mentioned_symbol or st.session_state.selected_symbol,
-            key="chart_symbol_key"
+            key="tab_chart_ticker_input"
         )
-    with col_period:
-        chart_period = st.selectbox(
-            "Timeframe",
-            options=["1mo", "3mo", "6mo", "1y", "2y", "5y"],
-            index=2
-        )
+    with col_tf:
+        timeframe = st.selectbox("Candle History", ["1mo", "3mo", "6mo", "1y", "2y", "5y"], index=2)
+    with col_action:
+        st.write("")
+        st.write("")
+        pin_btn = st.button("📌 Pin to Watchlist", use_container_width=True)
 
-    resolved_sym = nse.resolve_symbol(chart_symbol_input)
-    st.session_state.selected_symbol = resolved_sym
+    resolved_ticker = nse.resolve_symbol(target_symbol)
+    st.session_state.selected_symbol = resolved_ticker
 
-    quote = nse.get_live_quote(resolved_sym)
-    df = nse.get_historical_ohlcv(resolved_sym, period=chart_period, interval="1d")
+    if pin_btn:
+        memory.add_to_watchlist(resolved_ticker)
+        st.success(f"Added {resolved_ticker} to watchlist!")
 
-    if df is not None and not df.empty and len(df) > 10:
-        m1, m2, m3, m4, m5 = st.columns(5)
+    quote = nse.get_live_quote(resolved_ticker)
+    df = nse.get_historical_ohlcv(resolved_ticker, period=timeframe, interval="1d")
+
+    if df is not None and not df.empty and len(df) > 12:
+        # Technical indicators calculation
+        indicators = TechnicalAnalyzer.calculate_indicators(df)
+
+        # Top Metric Stat-Grid
+        m_col1, m_col2, m_col3, m_col4, m_col5, m_col6 = st.columns(6)
         ltp = quote.get("last_price", df["Close"].iloc[-1])
         chg = quote.get("change", 0)
         pchg = quote.get("percent_change", 0)
-        
-        m1.metric("LTP (₹)", f"{ltp:,.2f}", f"{chg:+.2f} ({pchg:+.2f}%)")
-        m2.metric("Day High", f"₹{quote.get('day_high', df['High'].iloc[-1]):,.2f}")
-        m3.metric("Day Low", f"₹{quote.get('day_low', df['Low'].iloc[-1]):,.2f}")
-        m4.metric("52W High", f"₹{quote.get('week_52_high', 0):,.2f}")
-        m5.metric("52W Low", f"₹{quote.get('week_52_low', 0):,.2f}")
 
-        indicators = TechnicalAnalyzer.calculate_indicators(df)
+        m_col1.metric("Live LTP", f"₹{ltp:,.2f}", f"{chg:+.2f} ({pchg:+.2f}%)")
+        m_col2.metric("200 EMA Benchmark", f"₹{indicators.get('ema_200', 'N/A')}")
+        m_col3.metric("RSI (14)", f"{indicators.get('rsi_14')}", indicators.get('rsi_condition'))
+        m_col4.metric("Pivot (P)", f"₹{indicators.get('pivot_point')}")
+        m_col5.metric("Support (S1)", f"₹{indicators.get('support_1')}")
+        m_col6.metric("Resistance (R1)", f"₹{indicators.get('resistance_1')}")
 
-        fig = make_subplots(
-            rows=2, cols=1,
-            shared_xaxes=True,
-            vertical_spacing=0.08,
-            row_heights=[0.75, 0.25],
-            subplot_titles=[f"{quote.get('company_name', resolved_sym)} ({resolved_sym}) Price & EMAs", "RSI (14) Momentum Indicator"]
-        )
+        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
-        fig.add_trace(
-            go.Candlestick(
-                x=df["Date"],
-                open=df["Open"],
-                high=df["High"],
-                low=df["Low"],
-                close=df["Close"],
-                name="OHLC"
-            ),
-            row=1, col=1
-        )
+        # Split layout: 70% Candlestick + Volume, 30% RSI Speedometer Gauge + ATR Setup
+        chart_col, gauge_col = st.columns([3, 1])
 
-        ema_20 = df["Close"].ewm(span=20, adjust=False).mean()
-        ema_50 = df["Close"].ewm(span=50, adjust=False).mean()
-        ema_200 = df["Close"].ewm(span=200, adjust=False).mean() if len(df) >= 40 else None
+        with chart_col:
+            # Candlestick + Volume Subplots
+            fig = make_subplots(
+                rows=2, cols=1,
+                shared_xaxes=True,
+                vertical_spacing=0.04,
+                row_heights=[0.78, 0.22],
+                subplot_titles=[f"{quote.get('company_name', resolved_ticker)} ({resolved_ticker})", "Volume"]
+            )
 
-        fig.add_trace(go.Scatter(x=df["Date"], y=ema_20, line=dict(color="#29b6f6", width=1.5), name="EMA 20"), row=1, col=1)
-        fig.add_trace(go.Scatter(x=df["Date"], y=ema_50, line=dict(color="#ffa726", width=1.5), name="EMA 50"), row=1, col=1)
-        if ema_200 is not None:
-            fig.add_trace(go.Scatter(x=df["Date"], y=ema_200, line=dict(color="#ab47bc", width=2), name="EMA 200"), row=1, col=1)
+            # Candlesticks
+            fig.add_trace(
+                go.Candlestick(
+                    x=df["Date"],
+                    open=df["Open"],
+                    high=df["High"],
+                    low=df["Low"],
+                    close=df["Close"],
+                    name="Price",
+                    increasing_line_color="#10b981",
+                    decreasing_line_color="#ef4444"
+                ),
+                row=1, col=1
+            )
 
-        rsi_series = TechnicalAnalyzer.calculate_rsi(df["Close"], 14)
-        fig.add_trace(go.Scatter(x=df["Date"], y=rsi_series, line=dict(color="#e040fb", width=1.5), name="RSI 14"), row=2, col=1)
-        fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
-        fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
+            # EMAs
+            ema_20 = df["Close"].ewm(span=20, adjust=False).mean()
+            ema_50 = df["Close"].ewm(span=50, adjust=False).mean()
+            ema_200 = df["Close"].ewm(span=200, adjust=False).mean() if len(df) >= 40 else None
 
-        fig.update_layout(
-            height=620,
-            xaxis_rangeslider_visible=False,
-            template="plotly_dark",
-            margin=dict(l=20, r=20, t=40, b=20)
-        )
-        st.plotly_chart(fig, use_container_width=True)
+            fig.add_trace(go.Scatter(x=df["Date"], y=ema_20, line=dict(color="#38bdf8", width=1.5), name="EMA 20"), row=1, col=1)
+            fig.add_trace(go.Scatter(x=df["Date"], y=ema_50, line=dict(color="#fbbf24", width=1.5), name="EMA 50"), row=1, col=1)
+            if ema_200 is not None:
+                fig.add_trace(go.Scatter(x=df["Date"], y=ema_200, line=dict(color="#c084fc", width=2), name="EMA 200"), row=1, col=1)
 
-        c_t1, c_t2, c_t3, c_t4 = st.columns(4)
-        c_t1.info(f"**Overall Bias**: {indicators.get('overall_bias')}")
-        c_t2.info(f"**MA Crossover**: {indicators.get('ma_crossover_status')}")
-        c_t3.info(f"**RSI (14)**: {indicators.get('rsi_14')} ({indicators.get('rsi_condition')})")
-        c_t4.info(f"**Pivot Levels**: Pivot ₹{indicators.get('pivot_point')} | S1: ₹{indicators.get('support_1')} | R1: ₹{indicators.get('resistance_1')}")
+            # Volume Bars
+            vol_colors = ["#10b981" if c >= o else "#ef4444" for c, o in zip(df["Close"], df["Open"])]
+            fig.add_trace(
+                go.Bar(x=df["Date"], y=df["Volume"], marker_color=vol_colors, name="Volume"),
+                row=2, col=1
+            )
+
+            fig.update_layout(
+                height=560,
+                xaxis_rangeslider_visible=False,
+                template="plotly_dark",
+                paper_bgcolor="#0e131d",
+                plot_bgcolor="#0e131d",
+                margin=dict(l=10, r=10, t=30, b=10),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        with gauge_col:
+            # RSI Speedometer Gauge
+            rsi_val = indicators.get("rsi_14", 50)
+            gauge_fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=rsi_val,
+                title={"text": "RSI (14) Momentum", "font": {"size": 15, "color": "#cbd5e1"}},
+                gauge={
+                    "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#475569"},
+                    "bar": {"color": "#60a5fa", "thickness": 0.25},
+                    "bgcolor": "#131926",
+                    "borderwidth": 1,
+                    "bordercolor": "#1f293d",
+                    "steps": [
+                        {"range": [0, 30], "color": "rgba(16, 185, 129, 0.3)"},
+                        {"range": [30, 70], "color": "rgba(100, 116, 139, 0.2)"},
+                        {"range": [70, 100], "color": "rgba(239, 68, 68, 0.3)"}
+                    ],
+                    "threshold": {
+                        "line": {"color": "#f43f5e", "width": 3},
+                        "thickness": 0.8,
+                        "value": rsi_val
+                    }
+                }
+            ))
+            gauge_fig.update_layout(
+                height=260,
+                margin=dict(l=20, r=20, t=40, b=10),
+                paper_bgcolor="#0e131d",
+                font={"color": "#f8fafc", "family": "Plus Jakarta Sans"}
+            )
+            st.plotly_chart(gauge_fig, use_container_width=True)
+
+            # Volatility & ATR Trade Setup Card
+            st.markdown(
+                f"<div class='terminal-card'>"
+                f"<div style='font-size:0.8rem; color:#94a3b8; font-weight:600;'>ATR (14) VOLATILITY SETUP</div>"
+                f"<div style='margin-top:6px; font-size:0.9rem;'>Daily ATR Range: <b class='number-font'>₹{indicators.get('atr_14')}</b></div>"
+                f"<div style='margin-top:4px; font-size:0.9rem; color:#ef4444;'>Stop-Loss: <b class='number-font'>₹{indicators.get('suggested_stop_loss')}</b></div>"
+                f"<div style='margin-top:4px; font-size:0.9rem; color:#10b981;'>Target: <b class='number-font'>₹{indicators.get('suggested_target')}</b></div>"
+                f"<div style='margin-top:6px; font-size:0.8rem; color:#60a5fa;'>Stance: <b>{indicators.get('overall_bias')}</b></div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
     else:
-        st.warning(f"Could not load historical candles for '{resolved_sym}'.")
+        st.warning(f"Could not load chart data for {resolved_ticker}. Please verify the symbol.")
 
-# ----------------- TAB 3: PORTFOLIO TRACKER -----------------
+# ================= TAB 3: PORTFOLIO & P&L ANALYTICS =================
 with tab_portfolio:
-    st.subheader("💼 Real-Time Portfolio P&L Tracker")
-    st.caption("Track your actual Indian equity holdings with live LTP, P&L, and returns.")
+    st.subheader("💼 Real-Time Portfolio Performance & Risk Distribution")
 
-    # Add holding
-    with st.expander("➕ Add New Stock Holding to Portfolio"):
-        p_c1, p_c2, p_c3 = st.columns(3)
-        with p_c1:
-            p_sym = st.text_input("Stock Symbol (e.g. TCS, RELIANCE)", key="p_sym_in")
-        with p_c2:
-            p_qty = st.number_input("Quantity", min_value=1, value=10, step=1, key="p_qty_in")
-        with p_c3:
-            p_buy = st.number_input("Average Buy Price (₹)", min_value=0.1, value=1000.0, step=10.0, key="p_buy_in")
+    # Add holding form
+    with st.expander("➕ Add Position to Portfolio"):
+        p1, p2, p3, p4 = st.columns(4)
+        with p1:
+            in_sym = st.text_input("NSE Symbol (e.g. INFY, HAL, BEL)")
+        with p2:
+            in_qty = st.number_input("Quantity", min_value=1, value=10, step=1)
+        with p3:
+            in_buy = st.number_input("Average Buy Price (₹)", min_value=0.5, value=1000.0, step=10.0)
+        with p4:
+            in_sector = st.selectbox("Sector", ["IT", "Banking", "Auto", "Defense", "Energy", "FMCG", "Railways", "Other"])
 
-        if st.button("Add to Portfolio"):
-            if p_sym:
-                res_sym = nse.resolve_symbol(p_sym)
-                st.session_state.portfolio.append({"symbol": res_sym, "qty": p_qty, "buy_price": p_buy})
-                st.success(f"Added {p_qty} shares of {res_sym} to your portfolio!")
+        if st.button("Log Position", use_container_width=True):
+            if in_sym:
+                res_sym = nse.resolve_symbol(in_sym)
+                st.session_state.portfolio.append({
+                    "symbol": res_sym,
+                    "qty": in_qty,
+                    "buy_price": in_buy,
+                    "sector": in_sector
+                })
+                st.success(f"Added {in_qty} of {res_sym}!")
                 st.rerun()
 
-    # Portfolio Calculation
+    # Portfolio Analytics Engine
     if st.session_state.portfolio:
-        portfolio_rows = []
-        total_invested = 0.0
-        total_current = 0.0
+        rows = []
+        total_inv = 0.0
+        total_cur = 0.0
+        sector_weights = {}
 
-        for h in st.session_state.portfolio:
-            sym = h["symbol"]
-            qty = h["qty"]
-            buy_p = h["buy_price"]
-            
-            q = nse.get_live_quote(sym)
-            cur_p = q.get("last_price", buy_p)
-            
-            invested = qty * buy_p
-            curr_val = qty * cur_p
-            pnl = curr_val - invested
-            pnl_pct = (pnl / invested * 100) if invested else 0.0
+        for pos in st.session_state.portfolio:
+            s = pos["symbol"]
+            q = pos["qty"]
+            bp = pos["buy_price"]
+            sec = pos.get("sector", "Other")
 
-            total_invested += invested
-            total_current += curr_val
+            live_q = nse.get_live_quote(s)
+            cur_p = live_q.get("last_price", bp)
 
-            portfolio_rows.append({
-                "Symbol": sym,
-                "Qty": qty,
-                "Avg Buy (₹)": f"₹{buy_p:,.2f}",
-                "Live LTP (₹)": f"₹{cur_p:,.2f}",
-                "Invested (₹)": f"₹{invested:,.2f}",
-                "Current Value (₹)": f"₹{curr_val:,.2f}",
-                "P&L (₹)": f"{'+' if pnl >= 0 else ''}₹{pnl:,.2f}",
+            inv_val = q * bp
+            cur_val = q * cur_p
+            pnl_val = cur_val - inv_val
+            pnl_pct = (pnl_val / inv_val * 100) if inv_val else 0.0
+
+            total_inv += inv_val
+            total_cur += cur_val
+            sector_weights[sec] = sector_weights.get(sec, 0.0) + cur_val
+
+            rows.append({
+                "Symbol": s,
+                "Sector": sec,
+                "Qty": q,
+                "Avg Buy": f"₹{bp:,.2f}",
+                "Live LTP": f"₹{cur_p:,.2f}",
+                "Invested": f"₹{inv_val:,.2f}",
+                "Current": f"₹{cur_val:,.2f}",
+                "P&L (₹)": f"{'+' if pnl_val >= 0 else ''}₹{pnl_val:,.2f}",
                 "Return (%)": f"{'+' if pnl_pct >= 0 else ''}{pnl_pct:.2f}%"
             })
 
-        total_pnl = total_current - total_invested
-        total_pnl_pct = (total_pnl / total_invested * 100) if total_invested else 0.0
+        net_pnl = total_cur - total_inv
+        net_pct = (net_pnl / total_inv * 100) if total_inv else 0.0
 
-        pt_c1, pt_c2, pt_c3 = st.columns(3)
-        pt_c1.metric("Total Invested", f"₹{total_invested:,.2f}")
-        pt_c2.metric("Current Portfolio Value", f"₹{total_current:,.2f}")
-        pt_c3.metric("Total P&L", f"{'+' if total_pnl >= 0 else ''}₹{total_pnl:,.2f}", f"{'+' if total_pnl_pct >= 0 else ''}{total_pnl_pct:.2f}%")
+        # High-impact summary cards
+        c_inv, c_cur, c_pnl = st.columns(3)
+        c_inv.metric("Capital Invested", f"₹{total_inv:,.2f}")
+        c_cur.metric("Current Portfolio Value", f"₹{total_cur:,.2f}")
+        c_pnl.metric("Total Unrealized P&L", f"{'+' if net_pnl >= 0 else ''}₹{net_pnl:,.2f}", f"{'+' if net_pct >= 0 else ''}{net_pct:.2f}%")
 
-        st.dataframe(pd.DataFrame(portfolio_rows), use_container_width=True)
+        p_chart_col, p_table_col = st.columns([1, 2])
 
-        if st.button("🗑️ Clear Entire Portfolio"):
+        with p_chart_col:
+            # Sector Allocation Donut Chart
+            donut_fig = go.Figure(data=[go.Pie(
+                labels=list(sector_weights.keys()),
+                values=list(sector_weights.values()),
+                hole=0.6,
+                marker=dict(colors=["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"]),
+                textinfo="label+percent"
+            )])
+            donut_fig.update_layout(
+                title={"text": "Sector Weighting Distribution", "font": {"size": 14, "color": "#cbd5e1"}},
+                height=320,
+                margin=dict(l=10, r=10, t=40, b=10),
+                paper_bgcolor="#0e131d",
+                font={"color": "#f8fafc", "family": "Plus Jakarta Sans"},
+                showlegend=False
+            )
+            st.plotly_chart(donut_fig, use_container_width=True)
+
+        with p_table_col:
+            st.markdown("##### 📋 Holdings Breakdown")
+            st.dataframe(pd.DataFrame(rows), use_container_width=True)
+
+        if st.button("🗑️ Reset Portfolio Holdings"):
             st.session_state.portfolio = []
             st.rerun()
     else:
-        st.info("Portfolio is empty. Add a holding above to start tracking real-time P&L!")
+        st.info("Portfolio is empty. Log a position above to track real-time P&L.")
 
-# ----------------- TAB 4: KNOWLEDGE STORE & NEWS -----------------
-with tab_knowledge:
-    st.subheader("📚 Corporate Knowledge Store & Real-Time News")
+# ================= TAB 4: LIVE INTELLIGENCE & NEWS =================
+with tab_radar:
+    st.subheader("📰 Market Intelligence & Regulatory Disclosures")
 
-    # Section 1: Live News Fetcher
-    st.markdown("#### 📰 Live Indian Financial News by Stock")
-    news_stock_input = st.text_input("Enter Stock for Real-Time Headlines", value="RELIANCE", key="news_sym_key")
-    if news_stock_input:
-        n_res = nse.get_live_stock_news(news_stock_input, limit=5)
-        for article in n_res:
-            st.markdown(f"**[{article['title']}]({article['link']})**")
-            st.caption(f"Source: {article['source']} • Published: {article['published']}")
+    n_col1, n_col2 = st.columns([1, 1])
 
-    st.divider()
+    with n_col1:
+        st.markdown("#### 🔴 Live Stock Media Stream")
+        target_news_stock = st.text_input("Stream News for Stock", value="RELIANCE", key="news_tab_input")
+        if target_news_stock:
+            news_items = nse.get_live_stock_news(target_news_stock, limit=5)
+            for item in news_items:
+                st.markdown(
+                    f"<div class='terminal-card'>"
+                    f"<div style='font-weight:600; font-size:0.95rem;'><a href='{item['link']}' target='_blank' style='color:#60a5fa; text-decoration:none;'>{item['title']}</a></div>"
+                    f"<div style='font-size:0.75rem; color:#94a3b8; margin-top:4px;'>Source: <b>{item['source']}</b> • <i>{item['published']}</i></div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
 
-    # Section 2: Semantic Knowledge Search
-    st.markdown("#### 🔍 Semantic Search across Ingested Corporate Knowledge")
-    k_query = st.text_input("Search corporate disclosures, defense order books, capex plans...", placeholder="e.g. Tejas defense order, Blinkit quick commerce, green hydrogen...")
-    if k_query:
-        k_results = agent.knowledge.search(k_query)
-        st.write(f"Found **{len(k_results)}** matching disclosures:")
-        for r in k_results:
-            st.markdown(f"### {r.get('symbol')} — {r.get('title')}")
-            st.caption(f"Category: {r.get('category')}")
-            st.write(r.get("content"))
-            st.divider()
-    else:
-        st.write("##### Existing Ingested Corporate Knowledge Base:")
-        for doc in agent.knowledge.documents:
-            with st.expander(f"{doc.get('symbol')} — {doc.get('title')}"):
-                st.caption(f"Category: {doc.get('category')}")
-                st.write(doc.get("content"))
+    with n_col2:
+        st.markdown("#### 🔍 Corporate Filings & Knowledge RAG")
+        k_search = st.text_input("Semantic Retrieval Query", placeholder="e.g. defense capex, Blinkit dark stores, green hydrogen...")
+        if k_search:
+            results = agent.knowledge.search(k_search)
+            for r in results:
+                st.markdown(
+                    f"<div class='terminal-card'>"
+                    f"<div style='font-size:0.8rem;'><span class='badge-pill badge-blue'>{r.get('symbol')}</span> <span style='color:#94a3b8;'>{r.get('category')}</span></div>"
+                    f"<div style='font-weight:700; margin-top:6px;'>{r.get('title')}</div>"
+                    f"<div style='font-size:0.85rem; color:#cbd5e1; margin-top:4px;'>{r.get('content')}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.caption("Enter a query above to semantically search across pre-seeded corporate filings.")
