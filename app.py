@@ -17,123 +17,163 @@ from core.vector_store import StockKnowledgeStore
 
 # Page configuration
 st.set_page_config(
-    page_title="Artha Terminal | Indian Equities Intelligence",
+    page_title="Artha // Quantum Terminal (NSE)",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Institutional Fintech CSS styling (Kite / TradingView Dark Mode Aesthetic)
+# =========================================================================
+# ULTRA-PREMIUM NEO-FUTURISTIC FINTECH CSS DESIGN SYSTEM
+# =========================================================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+    /* Global Typography & Deep Obsidian Background */
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
     }
 
-    code, pre, .number-font {
+    .stApp {
+        background: radial-gradient(circle at 15% 15%, #0f172a 0%, #07090e 60%),
+                    radial-gradient(circle at 85% 85%, #111827 0%, #07090e 60%);
+        background-color: #07090e;
+        color: #f1f5f9;
+    }
+
+    .mono, code, pre, .number-font {
         font-family: 'JetBrains Mono', monospace !important;
     }
 
-    /* Background & Container */
-    .stApp {
-        background-color: #0b0e14;
-        color: #e2e8f0;
+    .display-font {
+        font-family: 'Space Grotesk', sans-serif !important;
+        letter-spacing: -0.02em;
     }
 
-    /* Pulsing Live Dot */
-    .live-pulse {
+    /* Live Blinking Pulse */
+    .pulse-live {
         display: inline-block;
-        width: 8px;
-        height: 8px;
-        margin-right: 6px;
+        width: 9px;
+        height: 9px;
         border-radius: 50%;
         background-color: #10b981;
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-        animation: pulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+        box-shadow: 0 0 12px #10b981;
+        margin-right: 8px;
+        animation: pulseAnimation 2s infinite;
     }
-    @keyframes pulse {
-        to {
-            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
-        }
+    @keyframes pulseAnimation {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
-    /* Ticker Banner */
-    .ticker-bar {
-        background: linear-gradient(90deg, #121824 0%, #171f30 100%);
+    /* Glassmorphism Terminal Card */
+    .glass-card {
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 10px 18px;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Metric Cards */
-    .terminal-card {
-        background: #131926;
-        border: 1px solid #1f293d;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 16px 20px;
         margin-bottom: 14px;
-        transition: transform 0.2s ease, border-color 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
-    .terminal-card:hover {
-        border-color: #3b82f6;
+    .glass-card:hover {
+        border-color: rgba(96, 165, 250, 0.4);
         transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(37, 99, 235, 0.15);
     }
 
-    .badge-pill {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.03em;
+    /* Mini Metric HUD Card */
+    .hud-card {
+        background: linear-gradient(135deg, rgba(20, 27, 45, 0.7) 0%, rgba(13, 18, 30, 0.7) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 12px;
+        padding: 12px 16px;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
     }
-    .badge-green {
+    .hud-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
+    }
+
+    /* Cyber Badges */
+    .cyber-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .badge-gain {
         background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
+        color: #34d399;
         border: 1px solid rgba(16, 185, 129, 0.3);
     }
-    .badge-red {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+    .badge-loss {
+        background: rgba(244, 63, 94, 0.15);
+        color: #fb7185;
+        border: 1px solid rgba(244, 63, 94, 0.3);
     }
-    .badge-blue {
-        background: rgba(59, 130, 246, 0.15);
-        color: #60a5fa;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+    .badge-cyan {
+        background: rgba(6, 182, 212, 0.15);
+        color: #22d3ee;
+        border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .badge-purple {
+        background: rgba(168, 85, 247, 0.15);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.3);
     }
 
-    /* Custom Button Style */
+    /* Command Key Buttons */
     .stButton>button {
+        background: linear-gradient(180deg, #182235 0%, #101726 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #f8fafc;
         border-radius: 10px;
         font-weight: 600;
-        font-size: 0.85rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: #171f30;
-        color: #f1f5f9;
-        transition: all 0.2s ease;
+        font-size: 0.82rem;
+        padding: 8px 16px;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     .stButton>button:hover {
-        background: #2563eb;
+        background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #60a5fa;
         color: #ffffff;
-        border-color: #3b82f6;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
     }
 
-    /* Chat UI Customization */
+    /* Redesigned Streamlit Chat Messages */
     .stChatMessage {
-        background-color: #111724;
-        border: 1px solid #1e283d;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        background: rgba(13, 18, 30, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 14px !important;
+        padding: 16px 20px !important;
+        margin-bottom: 14px !important;
+        backdrop-filter: blur(12px);
+    }
+
+    /* Sleek Input Fields */
+    .stTextInput>div>div>input {
+        background-color: #0d121e !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #f8fafc !important;
+        border-radius: 10px !important;
+    }
+    .stTextInput>div>div>input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -141,6 +181,7 @@ st.markdown("""
 # Initialize Session State
 if "agent" not in st.session_state or not hasattr(st.session_state.agent.nse, "get_live_stock_news"):
     st.session_state.agent = IndianStockRAGAgent()
+
 if "portfolio" not in st.session_state:
     st.session_state.portfolio = [
         {"symbol": "RELIANCE", "qty": 10, "buy_price": 1220.0, "sector": "Energy"},
@@ -148,19 +189,23 @@ if "portfolio" not in st.session_state:
         {"symbol": "TMPV", "qty": 20, "buy_price": 285.0, "sector": "Auto"},
         {"symbol": "HAL", "qty": 8, "buy_price": 4300.0, "sector": "Defense"}
     ]
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "### ⚡ Artha Quantitative Intelligence Copilot\n\n"
-                       "Welcome to **Artha Terminal**. I am an autonomous quant research copilot connected to live **NSE India** order feeds, technical indicator matrices, valuation multiples, real-time financial news, and persistent SQLite memory.\n\n"
-                       "**Quick Actions:**\n"
-                       "- Ask about any stock (e.g. *Reliance, TCS, HAL, Zomato, Trent, IRFC*)\n"
-                       "- Compare metrics: *'Compare TCS and Infosys'*\n"
-                       "- Conversational context: *'How does its RSI compare to Tata Motors?'*\n"
-                       "- Valuation & News: *'What are the fundamentals and latest news on Zomato?'*"
+            "content": "### ⚡ Artha Quantum Intelligence Engine\n\n"
+                       "Autonomous quant copilot connected to live **NSE India** high-frequency order book feeds, "
+                       "technical indicator tensors, valuation ratio matrices, and dual-tier SQLite memory.\n\n"
+                       "**Direct Command Examples:**\n"
+                       "- 📊 *'What is Reliance live quote, pivot points, and technical trend?'*\n"
+                       "- ⚖️ *'Compare TCS and Infosys valuation, P/E, and dividend yield'*\n"
+                       "- 🛡️ *'Explain HAL defense order book and Tejas fighter aircraft outlook'*\n"
+                       "- 📰 *'Latest news and sentiment for Zomato / Blinkit'*\n"
+                       "- 🔄 *'How does its RSI compare to Tata Motors?'* (Contextual Memory)"
         }
     ]
+
 if "selected_symbol" not in st.session_state:
     st.session_state.selected_symbol = "RELIANCE"
 
@@ -172,331 +217,494 @@ nse: NSEClient = agent.nse
 for p in st.session_state.portfolio:
     p["symbol"] = nse.resolve_symbol(p["symbol"])
 
-# --- TOP LIVE TICKER RIBBON ---
+# =========================================================================
+# TOP HERO TELEMETRY RIBBON
+# =========================================================================
 indices = nse.get_major_indices()
 status = nse.get_market_status()
 
-# Visual Top Bar
-cols = st.columns([1.6] + [1] * len(indices))
-with cols[0]:
-    st.markdown(
-        f"<div style='padding-top:4px; font-weight:700; font-size:1.05rem;'>"
-        f"<span class='live-pulse'></span>NSE INDIA <span style='font-size:0.75rem; color:#94a3b8; font-weight:500;'>[{status.get('status', 'Open')}]</span>"
-        f"</div>",
-        unsafe_allow_html=True
-    )
+# Hero Header Bar
+st.markdown("""
+<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding: 4px 0;'>
+    <div>
+        <div class='display-font' style='font-size:1.6rem; font-weight:800; background:linear-gradient(90deg, #60a5fa 0%, #a855f7 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;'>
+            ARTHA // QUANTUM TERMINAL
+        </div>
+        <div style='font-size:0.78rem; color:#94a3b8; font-weight:500; letter-spacing:0.05em;'>
+            AUTONOMOUS AGENTIC RAG • REAL-TIME NSE FEED • DUAL-TIER MEMORY
+        </div>
+    </div>
+    <div style='text-align:right;'>
+        <span class='pulse-live'></span>
+        <span style='font-weight:700; font-size:0.85rem; color:#10b981;'>LIVE NSE FEED</span>
+        <span class='cyber-badge badge-cyan' style='margin-left:8px;'>MEMORY ACTIVE</span>
+        <span class='cyber-badge badge-purple' style='margin-left:4px;'>QUANTUM V2</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
+# Live Ticker Cards Grid
+index_cols = st.columns(len(indices))
 for i, (idx_name, d) in enumerate(indices.items()):
-    with cols[i + 1]:
+    with index_cols[i]:
         pchg = d.get("percent_change", 0)
-        badge = "badge-green" if pchg >= 0 else "badge-red"
+        badge_cls = "badge-gain" if pchg >= 0 else "badge-loss"
         sign = "+" if pchg >= 0 else ""
         st.markdown(
-            f"<div style='font-size:0.85rem; font-weight:600;'>{idx_name}</div>"
-            f"<div class='number-font' style='font-size:0.95rem; font-weight:700;'>{d.get('value', 0):,.2f} "
-            f"<span class='badge-pill {badge}'>{sign}{pchg:.2f}%</span></div>",
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8; font-weight:600;'>{idx_name}</div>"
+            f"<div class='number-font' style='font-size:1.1rem; font-weight:700; margin-top:2px;'>"
+            f"{d.get('value', 0):,.2f} "
+            f"<span class='cyber-badge {badge_cls}' style='font-size:0.7rem;'>{sign}{pchg:.2f}%</span>"
+            f"</div>"
+            f"</div>",
             unsafe_allow_html=True
         )
 
-st.markdown("<hr style='border-color: rgba(255,255,255,0.07); margin-top:12px; margin-bottom:18px;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin-top:12px; margin-bottom:16px;'>", unsafe_allow_html=True)
 
-# --- SIDEBAR: TERMINAL CONTROLS & MEMORY RADAR ---
+# =========================================================================
+# SIDEBAR: RADAR CONTROLS & SQLITE WATCHLIST
+# =========================================================================
 with st.sidebar:
-    st.markdown("## ⚡ ARTHA TERMINAL")
-    st.caption("Institutional AI Copilot for Indian Equities")
+    st.markdown("### ⚡ RADAR CONTROLS")
+    st.caption("Quantum Agent State & Memory Ledger")
 
-    # API Key Configuration
-    with st.expander("🔑 AI Engine Configuration", expanded=False):
+    with st.expander("🔑 AI Intelligence Credentials", expanded=False):
         api_key_input = st.text_input(
             "Gemini API Key",
             type="password",
             value=agent.api_key or "",
-            placeholder="AI Studio Key (Free)"
+            placeholder="AI Studio Key (Free Tier)"
         )
-        if st.button("Apply Key", width="stretch"):
+        if st.button("Update AI Core", width="stretch"):
             st.session_state.agent = IndianStockRAGAgent(api_key=api_key_input)
-            st.success("API Key updated!")
+            st.success("AI Core Synchronized!")
             st.rerun()
 
-    st.markdown("### 🧠 Dual-Tier Memory")
-    
-    # Tier 1: Working Context
-    with st.container():
-        st.markdown(f"**Active Ticker**: `{memory.last_mentioned_symbol or 'None'}`")
-        if memory.recent_symbols:
-            st.caption(f"Context Thread: {', '.join(memory.recent_symbols)}")
+    # Active Memory Context Radar
+    st.markdown(
+        f"<div class='glass-card' style='padding:12px 14px; margin-top:10px;'>"
+        f"<div style='font-size:0.75rem; color:#94a3b8; font-weight:600;'>⚡ WORKING CONTEXT (SHORT-TERM)</div>"
+        f"<div style='margin-top:4px; font-weight:700; color:#38bdf8;'>Active: <span class='number-font'>{memory.last_mentioned_symbol or 'None'}</span></div>"
+        f"<div style='font-size:0.75rem; color:#64748b; margin-top:2px;'>Thread: {', '.join(memory.recent_symbols) if memory.recent_symbols else 'Idle'}</div>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
 
-    # Tier 2: Persistent SQLite Watchlist
-    with st.expander("📋 SQLite Watchlist", expanded=True):
+    # SQLite Persistent Watchlist
+    with st.expander("📋 SQLite Persistent Watchlist", expanded=True):
         watchlist = memory.get_watchlist()
         if watchlist:
             for item in watchlist:
-                wc1, wc2 = st.columns([3, 1])
-                with wc1:
+                w_c1, w_c2 = st.columns([3, 1])
+                with w_c1:
                     st.markdown(f"**{item['symbol']}**")
                     if item.get("notes"):
                         st.caption(f"📌 {item['notes']}")
-                with wc2:
-                    if st.button("×", key=f"del_side_{item['symbol']}"):
+                with w_c2:
+                    if st.button("×", key=f"wl_del_{item['symbol']}"):
                         memory.remove_from_watchlist(item['symbol'])
                         st.rerun()
         else:
-            st.caption("Watchlist empty. Tell copilot: *'Add TCS to my watchlist'*")
+            st.caption("Watchlist empty. Tell agent: *'Add TCS to my watchlist'*")
 
-    # Quick Add to Watchlist
+    # Fast Pin to Watchlist
     with st.expander("➕ Pin Stock to Watchlist"):
-        add_sym_in = st.text_input("Symbol (e.g. HAL, IRFC, TRENT)")
-        add_note_in = st.text_input("Thesis / Notes")
-        if st.button("Save to Persistent Memory", width="stretch"):
-            if add_sym_in:
-                res_sym = nse.resolve_symbol(add_sym_in)
-                memory.add_to_watchlist(res_sym, notes=add_note_in)
-                st.success(f"Pinned {res_sym} to SQLite!")
+        add_sym_side = st.text_input("NSE Symbol (e.g. HAL, IRFC, ZOMATO)")
+        add_note_side = st.text_input("Research Thesis / Note")
+        if st.button("Pin to Persistent Memory", width="stretch"):
+            if add_sym_side:
+                res_sym = nse.resolve_symbol(add_sym_side)
+                memory.add_to_watchlist(res_sym, notes=add_note_side)
+                st.success(f"Pinned {res_sym} to SQLite Database!")
                 st.rerun()
 
-# --- MAIN NAVIGATION TABS ---
-tab_chat, tab_chart, tab_portfolio, tab_radar = st.tabs([
-    "💬 Research Copilot",
-    "📈 Interactive Charting & Radar",
-    "💼 Portfolio & P&L Analytics",
-    "📰 Live Intelligence & Disclosures"
+# =========================================================================
+# MAIN APP NAVIGATION TABS
+# =========================================================================
+tab_copilot, tab_treemap, tab_chart, tab_portfolio, tab_wire = st.tabs([
+    "💬 Quantum Copilot",
+    "🗺️ Market Sector Treemap",
+    "📊 Institutional Technical Radar",
+    "💼 Portfolio Cockpit",
+    "📰 Live Intelligence Wire"
 ])
 
-# ================= TAB 1: RESEARCH COPILOT =================
-with tab_chat:
-    st.markdown("##### ⚡ Command Shortcuts:")
-    sc1, sc2, sc3, sc4 = st.columns(4)
-    if sc1.button("📊 Reliance Live & Pivots"):
+# ----------------- TAB 1: QUANTUM COPILOT -----------------
+with tab_copilot:
+    st.markdown("##### ⚡ Tactical Command Matrix:")
+    cmd1, cmd2, cmd3, cmd4, cmd5, cmd6 = st.columns(6)
+    if cmd1.button("📊 Reliance Pivots"):
         st.session_state.pending_prompt = "What is the live price, RSI, and pivot levels for Reliance?"
-    if sc2.button("⚖️ Compare TCS vs INFY"):
+    if cmd2.button("⚖️ TCS vs INFY"):
         st.session_state.pending_prompt = "Compare TCS and Infosys in terms of valuation, P/E, and dividend yield."
-    if sc3.button("🚀 HAL Defense Order Book"):
+    if cmd3.button("🛡️ HAL Defense"):
         st.session_state.pending_prompt = "Explain HAL defense order book, Tejas fighter aircraft, and outlook."
-    if sc4.button("📰 Zomato News & Blinkit"):
+    if cmd4.button("⚡ Zomato & Blinkit"):
         st.session_state.pending_prompt = "What is the latest news and growth drivers for Zomato?"
+    if cmd5.button("🚂 IRFC Rail Trend"):
+        st.session_state.pending_prompt = "What is the live quote, 200 EMA status, and technical bias of IRFC?"
+    if cmd6.button("💰 INFY Valuation"):
+        st.session_state.pending_prompt = "What are the fundamental valuation ratios, P/E, and ROE of Infosys?"
 
-    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom: 14px;'></div>", unsafe_allow_html=True)
 
-    # Chat Feed
+    # Chat Messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             if "traces" in msg and msg["traces"]:
-                with st.expander("🛠️ Inspect Autonomous Tool Execution Traces", expanded=False):
+                with st.expander("🛠️ Autonomous Tool Execution Telemetry", expanded=False):
                     for t in msg["traces"]:
-                        st.markdown(f"**Executed Tool**: `{t.get('tool')}`")
-                        st.json({"arguments": t.get("args"), "data_payload": t.get("output")})
+                        st.markdown(f"**Tool Invoked**: `{t.get('tool')}`")
+                        st.json({"arguments": t.get("args"), "payload": t.get("output")})
 
-    # User Input
-    user_query = st.chat_input("Enter command or question (e.g. 'Analyze Tata Motors technicals and stop-loss')...")
+    # Chat Input
+    query = st.chat_input("Enter market prompt, comparison, or stock question (e.g. 'Is Tata Motors above its 200 EMA?')...")
     if getattr(st.session_state, "pending_prompt", None):
-        user_query = st.session_state.pending_prompt
+        query = st.session_state.pending_prompt
         st.session_state.pending_prompt = None
 
-    if user_query:
-        st.session_state.messages.append({"role": "user", "content": user_query})
+    if query:
+        st.session_state.messages.append({"role": "user", "content": query})
         with st.chat_message("user"):
-            st.markdown(user_query)
+            st.markdown(query)
 
         with st.chat_message("assistant"):
-            with st.spinner("Executing real-time tools & synthesizing intelligence..."):
-                resp, traces = agent.run(user_query)
-                st.markdown(resp)
+            with st.spinner("Synthesizing live market data & reasoning..."):
+                ans, traces = agent.run(query)
+                st.markdown(ans)
                 if traces:
-                    with st.expander("🛠️ Inspect Autonomous Tool Execution Traces", expanded=False):
+                    with st.expander("🛠️ Autonomous Tool Execution Telemetry", expanded=False):
                         for t in traces:
-                            st.markdown(f"**Executed Tool**: `{t.get('tool')}`")
-                            st.json({"arguments": t.get("args"), "data_payload": t.get("output")})
+                            st.markdown(f"**Tool Invoked**: `{t.get('tool')}`")
+                            st.json({"arguments": t.get("args"), "payload": t.get("output")})
 
         st.session_state.messages.append({
             "role": "assistant",
-            "content": resp,
+            "content": ans,
             "traces": traces
         })
 
-# ================= TAB 2: INTERACTIVE CHART & GAUGES =================
+# ----------------- TAB 2: MARKET SECTOR TREEMAP -----------------
+with tab_treemap:
+    st.subheader("🗺️ Indian Market Sector Treemap (NIFTY Heatmap)")
+    st.caption("Visual heat map of key Indian equities grouped by industry sectors, sized by capitalization and color-coded by daily performance.")
+
+    # Data for the interactive market treemap
+    sample_stocks = [
+        # Sector, Symbol, Company, Weight/Cap, % Change
+        ("IT", "TCS", "Tata Consultancy", 140, 1.45),
+        ("IT", "INFY", "Infosys", 110, 0.82),
+        ("IT", "WIPRO", "Wipro Ltd", 45, -0.42),
+        ("IT", "HCLTECH", "HCL Technologies", 55, 1.10),
+        ("IT", "TECHM", "Tech Mahindra", 35, -0.15),
+        
+        ("Banking & Finance", "HDFCBANK", "HDFC Bank", 160, -0.35),
+        ("Banking & Finance", "ICICIBANK", "ICICI Bank", 130, 1.25),
+        ("Banking & Finance", "SBIN", "State Bank of India", 90, 0.65),
+        ("Banking & Finance", "KOTAKBANK", "Kotak Mahindra", 70, -0.10),
+        ("Banking & Finance", "BAJFINANCE", "Bajaj Finance", 80, 2.10),
+        
+        ("Energy & Oil", "RELIANCE", "Reliance Industries", 190, -0.31),
+        ("Energy & Oil", "ONGC", "ONGC Ltd", 50, 0.95),
+        ("Energy & Oil", "NTPC", "NTPC Ltd", 65, 1.40),
+        ("Energy & Oil", "POWERGRID", "Power Grid Corp", 60, 0.20),
+        
+        ("Automobile", "TMPV", "Tata Motors PV", 70, 2.45),
+        ("Automobile", "MARUTI", "Maruti Suzuki", 85, -0.80),
+        ("Automobile", "M&M", "Mahindra & Mahindra", 75, 1.65),
+        ("Automobile", "BAJAJ-AUTO", "Bajaj Auto", 60, 0.50),
+        
+        ("Defense & Infra", "HAL", "Hindustan Aeronautics", 65, 3.20),
+        ("Defense & Infra", "BEL", "Bharat Electronics", 55, 1.80),
+        ("Defense & Infra", "LT", "Larsen & Toubro", 100, 0.75),
+        ("Defense & Infra", "IRFC", "Indian Railway Fin", 45, 2.10),
+        
+        ("FMCG & Consumer", "ITC", "ITC Limited", 95, 0.30),
+        ("FMCG & Consumer", "HINDUNILVR", "Hindustan Unilever", 115, -0.90),
+        ("FMCG & Consumer", "TRENT", "Trent Ltd (Zudio)", 60, 3.80),
+        ("FMCG & Consumer", "ZOMATO", "Zomato Ltd", 70, 1.95),
+    ]
+
+    labels = ["NSE MARKET"]
+    parents = [""]
+    values = [0]
+    colors = [0]
+    custom_texts = ["Market Overview"]
+
+    sectors = list(set([s[0] for s in sample_stocks]))
+    for sec in sectors:
+        labels.append(sec)
+        parents.append("NSE MARKET")
+        sec_stocks = [s for s in sample_stocks if s[0] == sec]
+        sec_val = sum([s[3] for s in sec_stocks])
+        sec_avg_chg = np.mean([s[4] for s in sec_stocks])
+        values.append(sec_val)
+        colors.append(sec_avg_chg)
+        custom_texts.append(f"{sec} Sector: {sec_avg_chg:+.2f}%")
+
+    for sec, sym, name, cap, chg in sample_stocks:
+        labels.append(sym)
+        parents.append(sec)
+        values.append(cap)
+        colors.append(chg)
+        custom_texts.append(f"{name} ({sym})<br>Change: {chg:+.2f}%")
+
+    tree_fig = go.Figure(go.Treemap(
+        labels=labels,
+        parents=parents,
+        values=values,
+        marker=dict(
+            colors=colors,
+            colorscale=[
+                [0.0, "#ef4444"],
+                [0.45, "#7f1d1d"],
+                [0.5, "#1e293b"],
+                [0.55, "#064e3b"],
+                [1.0, "#10b981"]
+            ],
+            cmid=0.0,
+            colorbar=dict(title="Day % Change", tickfont=dict(color="#f8fafc"))
+        ),
+        textinfo="label+value",
+        hovertext=custom_texts,
+        hoverinfo="text"
+    ))
+
+    tree_fig.update_layout(
+        height=580,
+        margin=dict(l=10, r=10, t=20, b=10),
+        paper_bgcolor="#07090e",
+        font=dict(family="Plus Jakarta Sans", color="#f8fafc", size=13)
+    )
+    st.plotly_chart(tree_fig, width="stretch")
+
+# ----------------- TAB 3: INSTITUTIONAL CHART & RADAR -----------------
 with tab_chart:
-    st.subheader("📈 Institutional Technical Radar")
+    st.subheader("📊 Quantitative Technical Radar")
     
-    col_sym, col_tf, col_action = st.columns([3, 2, 2])
-    with col_sym:
-        target_symbol = st.text_input(
+    t_c1, t_c2, t_c3 = st.columns([3, 2, 2])
+    with t_c1:
+        target_sym = st.text_input(
             "Ticker Symbol",
             value=memory.last_mentioned_symbol or st.session_state.selected_symbol,
-            key="tab_chart_ticker_input"
+            key="tab_chart_ticker_box"
         )
-    with col_tf:
-        timeframe = st.selectbox("Candle History", ["1mo", "3mo", "6mo", "1y", "2y", "5y"], index=2)
-    with col_action:
+    with t_c2:
+        chart_tf = st.selectbox("Candle History", ["1mo", "3mo", "6mo", "1y", "2y", "5y"], index=2)
+    with t_c3:
         st.write("")
         st.write("")
         pin_btn = st.button("📌 Pin to Watchlist", width="stretch")
 
-    resolved_ticker = nse.resolve_symbol(target_symbol)
-    st.session_state.selected_symbol = resolved_ticker
+    res_ticker = nse.resolve_symbol(target_sym)
+    st.session_state.selected_symbol = res_ticker
 
     if pin_btn:
-        memory.add_to_watchlist(resolved_ticker)
-        st.success(f"Added {resolved_ticker} to watchlist!")
+        memory.add_to_watchlist(res_ticker)
+        st.success(f"Pinned {res_ticker} to SQLite Watchlist!")
 
-    quote = nse.get_live_quote(resolved_ticker)
-    df = nse.get_historical_ohlcv(resolved_ticker, period=timeframe, interval="1d")
+    quote = nse.get_live_quote(res_ticker)
+    df = nse.get_historical_ohlcv(res_ticker, period=chart_tf, interval="1d")
 
     if df is not None and not df.empty and len(df) > 12:
-        # Technical indicators calculation
         indicators = TechnicalAnalyzer.calculate_indicators(df)
 
-        # Top Metric Stat-Grid
-        m_col1, m_col2, m_col3, m_col4, m_col5, m_col6 = st.columns(6)
+        # Telemetry HUD Row
+        hud1, hud2, hud3, hud4, hud5, hud6 = st.columns(6)
         ltp = quote.get("last_price", df["Close"].iloc[-1])
         chg = quote.get("change", 0)
         pchg = quote.get("percent_change", 0)
+        badge_style = "badge-gain" if pchg >= 0 else "badge-loss"
+        sign_char = "+" if pchg >= 0 else ""
 
-        m_col1.metric("Live LTP", f"₹{ltp:,.2f}", f"{chg:+.2f} ({pchg:+.2f}%)")
-        m_col2.metric("200 EMA Benchmark", f"₹{indicators.get('ema_200', 'N/A')}")
-        m_col3.metric("RSI (14)", f"{indicators.get('rsi_14')}", indicators.get('rsi_condition'))
-        m_col4.metric("Pivot (P)", f"₹{indicators.get('pivot_point')}")
-        m_col5.metric("Support (S1)", f"₹{indicators.get('support_1')}")
-        m_col6.metric("Resistance (R1)", f"₹{indicators.get('resistance_1')}")
+        hud1.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>LIVE LTP</div>"
+            f"<div class='number-font' style='font-size:1.15rem; font-weight:700;'>₹{ltp:,.2f}</div>"
+            f"<div class='cyber-badge {badge_style}'>{sign_char}{pchg:.2f}%</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
-        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+        hud2.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>200 EMA (BENCHMARK)</div>"
+            f"<div class='number-font' style='font-size:1.15rem; font-weight:700;'>₹{indicators.get('ema_200', 'N/A')}</div>"
+            f"<div style='font-size:0.75rem; color:#c084fc;'>{'Above Trend' if indicators.get('price_above_ema200') else 'Below Trend'}</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
-        # Split layout: 70% Candlestick + Volume, 30% RSI Speedometer Gauge + ATR Setup
-        chart_col, gauge_col = st.columns([3, 1])
+        hud3.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>RSI (14) MOMENTUM</div>"
+            f"<div class='number-font' style='font-size:1.15rem; font-weight:700;'>{indicators.get('rsi_14')}</div>"
+            f"<div style='font-size:0.75rem; color:#38bdf8;'>{indicators.get('rsi_condition')[:12]}</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
-        with chart_col:
-            # Candlestick + Volume Subplots
-            fig = make_subplots(
+        hud4.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>PIVOT POINT (P)</div>"
+            f"<div class='number-font' style='font-size:1.15rem; font-weight:700;'>₹{indicators.get('pivot_point')}</div>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>Classic Floor</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+
+        hud5.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>SUPPORT (S1)</div>"
+            f"<div class='number-font' style='font-size:1.15rem; font-weight:700; color:#34d399;'>₹{indicators.get('support_1')}</div>"
+            f"<div style='font-size:0.75rem; color:#10b981;'>Key Demand</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+
+        hud6.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>RESISTANCE (R1)</div>"
+            f"<div class='number-font' style='font-size:1.15rem; font-weight:700; color:#fb7185;'>₹{indicators.get('resistance_1')}</div>"
+            f"<div style='font-size:0.75rem; color:#f43f5e;'>Key Supply</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+
+        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+
+        chart_side, dial_side = st.columns([3, 1])
+
+        with chart_side:
+            # Candlestick Subplots
+            c_fig = make_subplots(
                 rows=2, cols=1,
                 shared_xaxes=True,
-                vertical_spacing=0.04,
-                row_heights=[0.78, 0.22],
-                subplot_titles=[f"{quote.get('company_name', resolved_ticker)} ({resolved_ticker})", "Volume"]
+                vertical_spacing=0.03,
+                row_heights=[0.8, 0.2],
+                subplot_titles=[f"{quote.get('company_name', res_ticker)} ({res_ticker}) // Real-Time Chart", "Volume Distribution"]
             )
 
-            # Candlesticks
-            fig.add_trace(
+            # Candlestick
+            c_fig.add_trace(
                 go.Candlestick(
                     x=df["Date"],
                     open=df["Open"],
                     high=df["High"],
                     low=df["Low"],
                     close=df["Close"],
-                    name="Price",
+                    name="Candles",
                     increasing_line_color="#10b981",
-                    decreasing_line_color="#ef4444"
+                    decreasing_line_color="#f43f5e"
                 ),
                 row=1, col=1
             )
 
-            # EMAs
+            # Overlays
             ema_20 = df["Close"].ewm(span=20, adjust=False).mean()
             ema_50 = df["Close"].ewm(span=50, adjust=False).mean()
             ema_200 = df["Close"].ewm(span=200, adjust=False).mean() if len(df) >= 40 else None
 
-            fig.add_trace(go.Scatter(x=df["Date"], y=ema_20, line=dict(color="#38bdf8", width=1.5), name="EMA 20"), row=1, col=1)
-            fig.add_trace(go.Scatter(x=df["Date"], y=ema_50, line=dict(color="#fbbf24", width=1.5), name="EMA 50"), row=1, col=1)
+            c_fig.add_trace(go.Scatter(x=df["Date"], y=ema_20, line=dict(color="#38bdf8", width=1.5), name="EMA 20"), row=1, col=1)
+            c_fig.add_trace(go.Scatter(x=df["Date"], y=ema_50, line=dict(color="#fbbf24", width=1.5), name="EMA 50"), row=1, col=1)
             if ema_200 is not None:
-                fig.add_trace(go.Scatter(x=df["Date"], y=ema_200, line=dict(color="#c084fc", width=2), name="EMA 200"), row=1, col=1)
+                c_fig.add_trace(go.Scatter(x=df["Date"], y=ema_200, line=dict(color="#c084fc", width=2), name="EMA 200"), row=1, col=1)
 
-            # Volume Bars
-            vol_colors = ["#10b981" if c >= o else "#ef4444" for c, o in zip(df["Close"], df["Open"])]
-            fig.add_trace(
-                go.Bar(x=df["Date"], y=df["Volume"], marker_color=vol_colors, name="Volume"),
-                row=2, col=1
-            )
+            # Volume
+            vol_colors = ["#10b981" if c >= o else "#f43f5e" for c, o in zip(df["Close"], df["Open"])]
+            c_fig.add_trace(go.Bar(x=df["Date"], y=df["Volume"], marker_color=vol_colors, name="Volume"), row=2, col=1)
 
-            fig.update_layout(
+            c_fig.update_layout(
                 height=560,
                 xaxis_rangeslider_visible=False,
                 template="plotly_dark",
-                paper_bgcolor="#0e131d",
-                plot_bgcolor="#0e131d",
+                paper_bgcolor="#0b0e14",
+                plot_bgcolor="#0b0e14",
                 margin=dict(l=10, r=10, t=30, b=10),
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(c_fig, width="stretch")
 
-        with gauge_col:
+        with dial_side:
             # RSI Speedometer Gauge
-            rsi_val = indicators.get("rsi_14", 50)
-            gauge_fig = go.Figure(go.Indicator(
+            rsi_score = indicators.get("rsi_14", 50)
+            dial_fig = go.Figure(go.Indicator(
                 mode="gauge+number",
-                value=rsi_val,
-                title={"text": "RSI (14) Momentum", "font": {"size": 15, "color": "#cbd5e1"}},
+                value=rsi_score,
+                title={"text": "RSI (14) MOMENTUM", "font": {"size": 13, "color": "#94a3b8"}},
                 gauge={
-                    "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#475569"},
-                    "bar": {"color": "#60a5fa", "thickness": 0.25},
+                    "axis": {"range": [0, 100], "tickcolor": "#475569"},
+                    "bar": {"color": "#38bdf8", "thickness": 0.3},
                     "bgcolor": "#131926",
-                    "borderwidth": 1,
-                    "bordercolor": "#1f293d",
                     "steps": [
-                        {"range": [0, 30], "color": "rgba(16, 185, 129, 0.3)"},
-                        {"range": [30, 70], "color": "rgba(100, 116, 139, 0.2)"},
-                        {"range": [70, 100], "color": "rgba(239, 68, 68, 0.3)"}
+                        {"range": [0, 30], "color": "rgba(16, 185, 129, 0.35)"},
+                        {"range": [30, 70], "color": "rgba(71, 85, 105, 0.25)"},
+                        {"range": [70, 100], "color": "rgba(244, 63, 94, 0.35)"}
                     ],
                     "threshold": {
                         "line": {"color": "#f43f5e", "width": 3},
                         "thickness": 0.8,
-                        "value": rsi_val
+                        "value": rsi_score
                     }
                 }
             ))
-            gauge_fig.update_layout(
-                height=260,
+            dial_fig.update_layout(
+                height=250,
                 margin=dict(l=20, r=20, t=40, b=10),
-                paper_bgcolor="#0e131d",
+                paper_bgcolor="#0b0e14",
                 font={"color": "#f8fafc", "family": "Plus Jakarta Sans"}
             )
-            st.plotly_chart(gauge_fig, width="stretch")
+            st.plotly_chart(dial_fig, width="stretch")
 
-            # Volatility & ATR Trade Setup Card
+            # Trade Setup Matrix Card
             st.markdown(
-                f"<div class='terminal-card'>"
-                f"<div style='font-size:0.8rem; color:#94a3b8; font-weight:600;'>ATR (14) VOLATILITY SETUP</div>"
-                f"<div style='margin-top:6px; font-size:0.9rem;'>Daily ATR Range: <b class='number-font'>₹{indicators.get('atr_14')}</b></div>"
-                f"<div style='margin-top:4px; font-size:0.9rem; color:#ef4444;'>Stop-Loss: <b class='number-font'>₹{indicators.get('suggested_stop_loss')}</b></div>"
-                f"<div style='margin-top:4px; font-size:0.9rem; color:#10b981;'>Target: <b class='number-font'>₹{indicators.get('suggested_target')}</b></div>"
-                f"<div style='margin-top:6px; font-size:0.8rem; color:#60a5fa;'>Stance: <b>{indicators.get('overall_bias')}</b></div>"
+                f"<div class='glass-card' style='padding:14px; margin-top:-10px;'>"
+                f"<div style='font-size:0.75rem; color:#94a3b8; font-weight:700; letter-spacing:0.04em;'>ATR VOLATILITY TARGETS</div>"
+                f"<div style='margin-top:6px; font-size:0.85rem;'>Daily True Range: <b class='number-font'>₹{indicators.get('atr_14')}</b></div>"
+                f"<div style='margin-top:4px; font-size:0.85rem; color:#f43f5e;'>Stop-Loss: <b class='number-font'>₹{indicators.get('suggested_stop_loss')}</b></div>"
+                f"<div style='margin-top:4px; font-size:0.85rem; color:#10b981;'>Profit Target: <b class='number-font'>₹{indicators.get('suggested_target')}</b></div>"
+                f"<div style='margin-top:8px; font-size:0.8rem; color:#38bdf8;'>Stance: <b>{indicators.get('overall_bias')}</b></div>"
                 f"</div>",
                 unsafe_allow_html=True
             )
     else:
-        st.warning(f"Could not load chart data for {resolved_ticker}. Please verify the symbol.")
+        st.warning(f"Could not load chart candles for {res_ticker}.")
 
-# ================= TAB 3: PORTFOLIO & P&L ANALYTICS =================
+# ----------------- TAB 4: PORTFOLIO COCKPIT -----------------
 with tab_portfolio:
-    st.subheader("💼 Real-Time Portfolio Performance & Risk Distribution")
+    st.subheader("💼 Real-Time Portfolio Cockpit & Risk Distribution")
 
-    # Add holding form
+    # Add position drawer
     with st.expander("➕ Add Position to Portfolio"):
-        p1, p2, p3, p4 = st.columns(4)
-        with p1:
-            in_sym = st.text_input("NSE Symbol (e.g. INFY, HAL, BEL)")
-        with p2:
-            in_qty = st.number_input("Quantity", min_value=1, value=10, step=1)
-        with p3:
-            in_buy = st.number_input("Average Buy Price (₹)", min_value=0.5, value=1000.0, step=10.0)
-        with p4:
-            in_sector = st.selectbox("Sector", ["IT", "Banking", "Auto", "Defense", "Energy", "FMCG", "Railways", "Other"])
+        f1, f2, f3, f4 = st.columns(4)
+        with f1:
+            sym_in = st.text_input("NSE Symbol (e.g. INFY, HAL, BEL, ZOMATO)")
+        with f2:
+            qty_in = st.number_input("Shares Quantity", min_value=1, value=10, step=1)
+        with f3:
+            buy_in = st.number_input("Average Buy Price (₹)", min_value=0.5, value=1000.0, step=10.0)
+        with f4:
+            sec_in = st.selectbox("Sector Classification", ["IT", "Banking", "Auto", "Defense", "Energy", "FMCG", "Railways", "Other"])
 
-        if st.button("Log Position", width="stretch"):
-            if in_sym:
-                res_sym = nse.resolve_symbol(in_sym)
+        if st.button("Log Position to Cockpit", width="stretch"):
+            if sym_in:
+                r_sym = nse.resolve_symbol(sym_in)
                 st.session_state.portfolio.append({
-                    "symbol": res_sym,
-                    "qty": in_qty,
-                    "buy_price": in_buy,
-                    "sector": in_sector
+                    "symbol": r_sym,
+                    "qty": qty_in,
+                    "buy_price": buy_in,
+                    "sector": sec_in
                 })
-                st.success(f"Added {in_qty} of {res_sym}!")
+                st.success(f"Position in {r_sym} logged!")
                 st.rerun()
 
-    # Portfolio Analytics Engine
     if st.session_state.portfolio:
-        rows = []
-        total_inv = 0.0
-        total_cur = 0.0
+        p_rows = []
+        tot_inv = 0.0
+        tot_cur = 0.0
         sector_weights = {}
 
         for pos in st.session_state.portfolio:
@@ -513,11 +721,11 @@ with tab_portfolio:
             pnl_val = cur_val - inv_val
             pnl_pct = (pnl_val / inv_val * 100) if inv_val else 0.0
 
-            total_inv += inv_val
-            total_cur += cur_val
+            tot_inv += inv_val
+            tot_cur += cur_val
             sector_weights[sec] = sector_weights.get(sec, 0.0) + cur_val
 
-            rows.append({
+            p_rows.append({
                 "Symbol": s,
                 "Sector": sec,
                 "Qty": q,
@@ -529,19 +737,44 @@ with tab_portfolio:
                 "Return (%)": f"{'+' if pnl_pct >= 0 else ''}{pnl_pct:.2f}%"
             })
 
-        net_pnl = total_cur - total_inv
-        net_pct = (net_pnl / total_inv * 100) if total_inv else 0.0
+        net_pnl = tot_cur - tot_inv
+        net_pct = (net_pnl / tot_inv * 100) if tot_inv else 0.0
 
-        # High-impact summary cards
-        c_inv, c_cur, c_pnl = st.columns(3)
-        c_inv.metric("Capital Invested", f"₹{total_inv:,.2f}")
-        c_cur.metric("Current Portfolio Value", f"₹{total_cur:,.2f}")
-        c_pnl.metric("Total Unrealized P&L", f"{'+' if net_pnl >= 0 else ''}₹{net_pnl:,.2f}", f"{'+' if net_pct >= 0 else ''}{net_pct:.2f}%")
+        # Telemetry cards
+        pt1, pt2, pt3 = st.columns(3)
+        pt1.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>TOTAL INVESTED CAPITAL</div>"
+            f"<div class='number-font' style='font-size:1.35rem; font-weight:700;'>₹{tot_inv:,.2f}</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
-        p_chart_col, p_table_col = st.columns([1, 2])
+        pt2.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>CURRENT PORTFOLIO VALUE</div>"
+            f"<div class='number-font' style='font-size:1.35rem; font-weight:700; color:#38bdf8;'>₹{tot_cur:,.2f}</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
-        with p_chart_col:
-            # Sector Allocation Donut Chart
+        pnl_badge = "badge-gain" if net_pnl >= 0 else "badge-loss"
+        sign_p = "+" if net_pnl >= 0 else ""
+        pt3.markdown(
+            f"<div class='hud-card'>"
+            f"<div style='font-size:0.75rem; color:#94a3b8;'>TOTAL UNREALIZED P&L</div>"
+            f"<div class='number-font' style='font-size:1.35rem; font-weight:700;'>"
+            f"{sign_p}₹{net_pnl:,.2f} <span class='cyber-badge {pnl_badge}'>{sign_p}{net_pct:.2f}%</span>"
+            f"</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+
+        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+
+        chart_w_col, table_w_col = st.columns([1, 2])
+
+        with chart_w_col:
             donut_fig = go.Figure(data=[go.Pie(
                 labels=list(sector_weights.keys()),
                 values=list(sector_weights.values()),
@@ -550,58 +783,58 @@ with tab_portfolio:
                 textinfo="label+percent"
             )])
             donut_fig.update_layout(
-                title={"text": "Sector Weighting Distribution", "font": {"size": 14, "color": "#cbd5e1"}},
-                height=320,
-                margin=dict(l=10, r=10, t=40, b=10),
-                paper_bgcolor="#0e131d",
+                title={"text": "Sector Weighting Distribution", "font": {"size": 13, "color": "#94a3b8"}},
+                height=300,
+                margin=dict(l=10, r=10, t=35, b=10),
+                paper_bgcolor="#0b0e14",
                 font={"color": "#f8fafc", "family": "Plus Jakarta Sans"},
                 showlegend=False
             )
             st.plotly_chart(donut_fig, width="stretch")
 
-        with p_table_col:
-            st.markdown("##### 📋 Holdings Breakdown")
-            st.dataframe(pd.DataFrame(rows), width="stretch")
+        with table_w_col:
+            st.markdown("##### 📋 Active Positions Ledger")
+            st.dataframe(pd.DataFrame(p_rows), width="stretch")
 
-        if st.button("🗑️ Reset Portfolio Holdings"):
+        if st.button("🗑️ Reset Entire Portfolio"):
             st.session_state.portfolio = []
             st.rerun()
     else:
-        st.info("Portfolio is empty. Log a position above to track real-time P&L.")
+        st.info("Portfolio ledger is empty. Add a holding above.")
 
-# ================= TAB 4: LIVE INTELLIGENCE & NEWS =================
-with tab_radar:
-    st.subheader("📰 Market Intelligence & Regulatory Disclosures")
+# ----------------- TAB 5: LIVE INTELLIGENCE WIRE -----------------
+with tab_wire:
+    st.subheader("📰 Market Intelligence Wire & Regulatory Disclosures")
 
-    n_col1, n_col2 = st.columns([1, 1])
+    w1, w2 = st.columns([1, 1])
 
-    with n_col1:
-        st.markdown("#### 🔴 Live Stock Media Stream")
-        target_news_stock = st.text_input("Stream News for Stock", value="RELIANCE", key="news_tab_input")
-        if target_news_stock:
-            news_items = nse.get_live_stock_news(target_news_stock, limit=5)
-            for item in news_items:
+    with w1:
+        st.markdown("#### 🔴 Real-Time Media Stream")
+        stream_stock = st.text_input("Stream News for Stock", value="RELIANCE", key="wire_stock_input")
+        if stream_stock:
+            news_feed = nse.get_live_stock_news(stream_stock, limit=5)
+            for item in news_feed:
                 st.markdown(
-                    f"<div class='terminal-card'>"
-                    f"<div style='font-weight:600; font-size:0.95rem;'><a href='{item['link']}' target='_blank' style='color:#60a5fa; text-decoration:none;'>{item['title']}</a></div>"
-                    f"<div style='font-size:0.75rem; color:#94a3b8; margin-top:4px;'>Source: <b>{item['source']}</b> • <i>{item['published']}</i></div>"
+                    f"<div class='glass-card' style='padding:14px; margin-bottom:10px;'>"
+                    f"<div style='font-weight:600; font-size:0.92rem;'><a href='{item['link']}' target='_blank' style='color:#60a5fa; text-decoration:none;'>{item['title']}</a></div>"
+                    f"<div style='font-size:0.75rem; color:#94a3b8; margin-top:4px;'>Source: <b style='color:#cbd5e1;'>{item['source']}</b> • <i>{item['published']}</i></div>"
                     f"</div>",
                     unsafe_allow_html=True
                 )
 
-    with n_col2:
-        st.markdown("#### 🔍 Corporate Filings & Knowledge RAG")
-        k_search = st.text_input("Semantic Retrieval Query", placeholder="e.g. defense capex, Blinkit dark stores, green hydrogen...")
-        if k_search:
-            results = agent.knowledge.search(k_search)
-            for r in results:
+    with w2:
+        st.markdown("#### 🔍 Semantic Corporate Filings RAG")
+        filing_query = st.text_input("Semantic Retrieval Query", placeholder="e.g. Tejas defense capex, Blinkit dark stores, green hydrogen...")
+        if filing_query:
+            k_results = agent.knowledge.search(filing_query)
+            for r in k_results:
                 st.markdown(
-                    f"<div class='terminal-card'>"
-                    f"<div style='font-size:0.8rem;'><span class='badge-pill badge-blue'>{r.get('symbol')}</span> <span style='color:#94a3b8;'>{r.get('category')}</span></div>"
-                    f"<div style='font-weight:700; margin-top:6px;'>{r.get('title')}</div>"
+                    f"<div class='glass-card' style='padding:14px; margin-bottom:10px;'>"
+                    f"<div><span class='cyber-badge badge-cyan'>{r.get('symbol')}</span> <span style='font-size:0.75rem; color:#94a3b8; margin-left:6px;'>{r.get('category')}</span></div>"
+                    f"<div style='font-weight:700; margin-top:6px; font-size:0.95rem;'>{r.get('title')}</div>"
                     f"<div style='font-size:0.85rem; color:#cbd5e1; margin-top:4px;'>{r.get('content')}</div>"
                     f"</div>",
                     unsafe_allow_html=True
                 )
         else:
-            st.caption("Enter a query above to semantically search across pre-seeded corporate filings.")
+            st.caption("Search across corporate announcements and business profiles.")
