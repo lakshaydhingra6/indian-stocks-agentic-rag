@@ -139,13 +139,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize Session State
-if "agent" not in st.session_state:
+if "agent" not in st.session_state or not hasattr(st.session_state.agent.nse, "get_live_stock_news"):
     st.session_state.agent = IndianStockRAGAgent()
 if "portfolio" not in st.session_state:
     st.session_state.portfolio = [
         {"symbol": "RELIANCE", "qty": 10, "buy_price": 1220.0, "sector": "Energy"},
         {"symbol": "TCS", "qty": 5, "buy_price": 2400.0, "sector": "IT"},
-        {"symbol": "TATAMOTORS", "qty": 20, "buy_price": 850.0, "sector": "Auto"},
+        {"symbol": "TMPV", "qty": 20, "buy_price": 285.0, "sector": "Auto"},
         {"symbol": "HAL", "qty": 8, "buy_price": 4300.0, "sector": "Defense"}
     ]
 if "messages" not in st.session_state:
@@ -167,6 +167,10 @@ if "selected_symbol" not in st.session_state:
 agent: IndianStockRAGAgent = st.session_state.agent
 memory: DualTierMemoryManager = agent.memory
 nse: NSEClient = agent.nse
+
+# Auto-migrate any legacy portfolio symbols
+for p in st.session_state.portfolio:
+    p["symbol"] = nse.resolve_symbol(p["symbol"])
 
 # --- TOP LIVE TICKER RIBBON ---
 indices = nse.get_major_indices()
@@ -209,7 +213,7 @@ with st.sidebar:
             value=agent.api_key or "",
             placeholder="AI Studio Key (Free)"
         )
-        if st.button("Apply Key", use_container_width=True):
+        if st.button("Apply Key", width="stretch"):
             st.session_state.agent = IndianStockRAGAgent(api_key=api_key_input)
             st.success("API Key updated!")
             st.rerun()
@@ -243,7 +247,7 @@ with st.sidebar:
     with st.expander("➕ Pin Stock to Watchlist"):
         add_sym_in = st.text_input("Symbol (e.g. HAL, IRFC, TRENT)")
         add_note_in = st.text_input("Thesis / Notes")
-        if st.button("Save to Persistent Memory", use_container_width=True):
+        if st.button("Save to Persistent Memory", width="stretch"):
             if add_sym_in:
                 res_sym = nse.resolve_symbol(add_sym_in)
                 memory.add_to_watchlist(res_sym, notes=add_note_in)
@@ -326,7 +330,7 @@ with tab_chart:
     with col_action:
         st.write("")
         st.write("")
-        pin_btn = st.button("📌 Pin to Watchlist", use_container_width=True)
+        pin_btn = st.button("📌 Pin to Watchlist", width="stretch")
 
     resolved_ticker = nse.resolve_symbol(target_symbol)
     st.session_state.selected_symbol = resolved_ticker
@@ -411,7 +415,7 @@ with tab_chart:
                 margin=dict(l=10, r=10, t=30, b=10),
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with gauge_col:
             # RSI Speedometer Gauge
@@ -444,7 +448,7 @@ with tab_chart:
                 paper_bgcolor="#0e131d",
                 font={"color": "#f8fafc", "family": "Plus Jakarta Sans"}
             )
-            st.plotly_chart(gauge_fig, use_container_width=True)
+            st.plotly_chart(gauge_fig, width="stretch")
 
             # Volatility & ATR Trade Setup Card
             st.markdown(
@@ -476,7 +480,7 @@ with tab_portfolio:
         with p4:
             in_sector = st.selectbox("Sector", ["IT", "Banking", "Auto", "Defense", "Energy", "FMCG", "Railways", "Other"])
 
-        if st.button("Log Position", use_container_width=True):
+        if st.button("Log Position", width="stretch"):
             if in_sym:
                 res_sym = nse.resolve_symbol(in_sym)
                 st.session_state.portfolio.append({
@@ -553,11 +557,11 @@ with tab_portfolio:
                 font={"color": "#f8fafc", "family": "Plus Jakarta Sans"},
                 showlegend=False
             )
-            st.plotly_chart(donut_fig, use_container_width=True)
+            st.plotly_chart(donut_fig, width="stretch")
 
         with p_table_col:
             st.markdown("##### 📋 Holdings Breakdown")
-            st.dataframe(pd.DataFrame(rows), use_container_width=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch")
 
         if st.button("🗑️ Reset Portfolio Holdings"):
             st.session_state.portfolio = []

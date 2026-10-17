@@ -58,9 +58,9 @@ class StockKnowledgeStore:
                 "category": "PSU Banking"
             },
             {
-                "symbol": "TATAMOTORS",
-                "title": "Tata Motors EV Leadership & JLR Turnaround",
-                "content": "Tata Motors dominates the Indian Electric Vehicle (EV) passenger car segment with Nexon EV, Punch EV, and Curvv EV, commanding >65% market share. Its luxury subsidiary Jaguar Land Rover (JLR) delivers strong free cash flows driven by Defender and Range Rover order books. The company approved demerging into Commercial Vehicles and Passenger Vehicles businesses.",
+                "symbol": "TMPV",
+                "title": "Tata Motors (Passenger Vehicles & EV) Leadership & JLR",
+                "content": "Tata Motors Passenger Vehicles (TMPV) dominates the Indian Electric Vehicle (EV) passenger car segment with Nexon EV, Punch EV, and Curvv EV, commanding >65% market share. Its luxury subsidiary Jaguar Land Rover (JLR) delivers strong free cash flows driven by Defender and Range Rover order books. Following the 2026 demerger, passenger vehicles trade under TMPV and commercial vehicles under TMCV.",
                 "category": "Automobile & EV"
             },
             {

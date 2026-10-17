@@ -106,5 +106,11 @@
     "title": "Bajaj Finance Digital Omnichannel & Asset Franchise",
     "content": "Bajaj Finance is India's largest non-banking financial company (NBFC). Known for its proprietary customer credit database, consumer durable zero-cost EMI financing, and the Bajaj Finserv mobile super-app, it maintains industry-leading AUM growth with strong asset quality.",
     "category": "Financial Services & NBFC"
+  },
+  {
+    "symbol": "TMPV",
+    "title": "Tata Motors (Passenger Vehicles & EV) Leadership & JLR",
+    "content": "Tata Motors Passenger Vehicles (TMPV) dominates the Indian Electric Vehicle (EV) passenger car segment with Nexon EV, Punch EV, and Curvv EV, commanding >65% market share. Its luxury subsidiary Jaguar Land Rover (JLR) delivers strong free cash flows driven by Defender and Range Rover order books. Following the 2026 demerger, passenger vehicles trade under TMPV and commercial vehicles under TMCV.",
+    "category": "Automobile & EV"
   }
 ]

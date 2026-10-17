@@ -37,18 +37,22 @@ class NSEClient:
         except Exception as e:
             logger.warning(f"Failed to refresh NSE cookies: {e}. Fallback mechanisms are active.")
 
+    RENAME_FALLBACKS = {
+        "TATAMOTORS": "TMPV",
+        "TATAMTRDVR": "TMPV",
+    }
+
     def resolve_symbol(self, query: str) -> str:
         """Resolves common names/aliases (e.g., 'reliance', 'tata motors', 'hal') to standard NSE symbol."""
         cleaned = query.strip().lower()
-        # Direct alias match
         if cleaned in TICKER_ALIASES:
-            return TICKER_ALIASES[cleaned]
-        # Partial match in aliases
+            sym = TICKER_ALIASES[cleaned]
+            return self.RENAME_FALLBACKS.get(sym, sym)
         for alias, symbol in TICKER_ALIASES.items():
             if alias in cleaned or cleaned in alias:
-                return symbol
-        # Default to uppercase alphanumeric symbol without spaces
-        return query.strip().upper().replace(" ", "")
+                return self.RENAME_FALLBACKS.get(symbol, symbol)
+        raw_sym = query.strip().upper().replace(" ", "")
+        return self.RENAME_FALLBACKS.get(raw_sym, raw_sym)
 
     def get_market_status(self) -> Dict[str, Any]:
         """Fetches the current live status of NSE market segments."""
@@ -56,7 +60,7 @@ class NSEClient:
         url = f"{NSE_BASE_URL}/api/marketStatus"
         try:
             resp = self.session.get(url, timeout=5)
-            if resp.status_code == 200:
+            if resp.status_code == 200 and resp.text.strip().startswith("{"):
                 data = resp.json()
                 for market in data.get("marketState", []):
                     if market.get("market") == "Capital Market":
@@ -69,8 +73,8 @@ class NSEClient:
                             "percent_change": market.get("percentChange", 0),
                             "source": "NSE_LIVE"
                         }
-        except Exception as e:
-            logger.warning(f"Direct NSE marketStatus error: {e}. Using fallback.")
+        except Exception:
+            pass
 
         # Fallback via yfinance for NIFTY 50
         try:
