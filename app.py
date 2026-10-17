@@ -103,9 +103,9 @@ html, body, [class*="css"] {
 }
 </style>
 """, unsafe_allow_html=True)
-# Duplicate CSS block removed – original consolidated CSS retained
-</style>
-""", unsafe_allow_html=True)
+
+
+
 
 # Initialize Session State
 if "agent" not in st.session_state or not hasattr(st.session_state.agent.nse, "get_live_stock_news"):
