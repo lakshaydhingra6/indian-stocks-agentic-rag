@@ -14,6 +14,7 @@ from core.nse_client import NSEClient
 from core.technicals import TechnicalAnalyzer
 from core.memory_manager import DualTierMemoryManager
 from core.vector_store import StockKnowledgeStore
+from core.ipo_manager import IPOManager
 
 # Page configuration
 st.set_page_config(
@@ -323,8 +324,9 @@ with st.sidebar:
 # =========================================================================
 # MAIN APP NAVIGATION TABS
 # =========================================================================
-tab_copilot, tab_treemap, tab_chart, tab_portfolio, tab_wire = st.tabs([
+tab_copilot, tab_ipos, tab_treemap, tab_chart, tab_portfolio, tab_wire = st.tabs([
     "💬 Quantum Copilot",
+    "🚀 Upcoming IPOs & Financials",
     "🗺️ Market Sector Treemap",
     "📊 Institutional Technical Radar",
     "💼 Portfolio Cockpit",
@@ -348,6 +350,17 @@ with tab_copilot:
     if cmd6.button("💰 INFY Valuation"):
         st.session_state.pending_prompt = "What are the fundamental valuation ratios, P/E, and ROE of Infosys?"
 
+    # Secondary IPO Command Row
+    ipo_c1, ipo_c2, ipo_c3, ipo_c4 = st.columns(4)
+    if ipo_c1.button("🚀 Swiggy IPO Turnover"):
+        st.session_state.pending_prompt = "What is Swiggy IPO turnover, losses, lot size, and Instamart growth?"
+    if ipo_c2.button("🚘 Hyundai IPO Valuation"):
+        st.session_state.pending_prompt = "Explain Hyundai India IPO turnover, profit, and valuation compared to Maruti."
+    if ipo_c3.button("☀️ Waaree Energies 95% GMP"):
+        st.session_state.pending_prompt = "Give me Waaree Energies IPO financials, profit jump, and expected GMP listing gains."
+    if ipo_c4.button("⚡ NTPC Green Energy IPO"):
+        st.session_state.pending_prompt = "What are the financials, revenue, and capacity of upcoming NTPC Green Energy IPO?"
+
     st.markdown("<div style='margin-bottom: 14px;'></div>", unsafe_allow_html=True)
 
     # Chat Messages
@@ -361,7 +374,7 @@ with tab_copilot:
                         st.json({"arguments": t.get("args"), "payload": t.get("output")})
 
     # Chat Input
-    query = st.chat_input("Enter market prompt, comparison, or stock question (e.g. 'Is Tata Motors above its 200 EMA?')...")
+    query = st.chat_input("Enter market prompt, comparison, or stock question (e.g. 'What is Swiggy IPO turnover and profit?')...")
     if getattr(st.session_state, "pending_prompt", None):
         query = st.session_state.pending_prompt
         st.session_state.pending_prompt = None
@@ -387,7 +400,112 @@ with tab_copilot:
             "traces": traces
         })
 
-# ----------------- TAB 2: MARKET SECTOR TREEMAP -----------------
+# ----------------- TAB 2: UPCOMING IPOS & FINANCIALS -----------------
+with tab_ipos:
+    st.subheader("🚀 Upcoming Indian IPOs & Primary Market Intelligence")
+    st.caption("Comprehensive real-world disclosures on issue sizes, price bands, lot sizes, GMP premiums, and 3-year turnover & net profits (PAT).")
+
+    ipo_mgr = agent.tools_registry.ipo_mgr
+    all_ipos = ipo_mgr.get_upcoming_ipos(status="all")
+
+    col_flt, col_srch = st.columns([1, 2])
+    with col_flt:
+        filter_status = st.selectbox("IPO Status Filter", ["All IPOs", "Upcoming", "Active / Bidding"])
+    with col_srch:
+        search_kw = st.text_input("🔍 Search by Company or Sector (e.g. Swiggy, Renewable, Automotive)", "")
+
+    filtered = all_ipos
+    if filter_status != "All IPOs":
+        filtered = [i for i in filtered if filter_status.lower() in i.get("status", "").lower()]
+    if search_kw:
+        filtered = ipo_mgr.search_ipos(search_kw)
+
+    st.write(f"Showing **{len(filtered)}** Public Offerings:")
+
+    for ipo in filtered:
+        fin = ipo.get("financials", {})
+        rev = fin.get("turnover_revenue", {})
+        pat = fin.get("net_profit_pat", {})
+
+        with st.container():
+            status_cls = "badge-gain" if "Active" in ipo.get("status", "") else "badge-purple"
+            st.markdown(
+                f"<div class='glass-card'>"
+                f"<div style='display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;'>"
+                f"<div>"
+                f"<span class='display-font' style='font-size:1.25rem; font-weight:700;'>{ipo['company_name']}</span> "
+                f"<span class='cyber-badge badge-cyan'>{ipo.get('symbol')}</span> "
+                f"<span style='color:#94a3b8; font-size:0.8rem; margin-left:6px;'>{ipo.get('sector')}</span>"
+                f"</div>"
+                f"<div>"
+                f"<span class='cyber-badge {status_cls}'>{ipo['status']}</span>"
+                f"</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            # 4 HUD Stat Blocks
+            c1, c2, c3, c4 = st.columns(4)
+            c1.markdown(
+                f"<div class='hud-card'>"
+                f"<div style='font-size:0.72rem; color:#94a3b8;'>PRICE BAND</div>"
+                f"<div class='number-font' style='font-size:1.05rem; font-weight:700; color:#38bdf8;'>{ipo['price_band']}</div>"
+                f"<div style='font-size:0.75rem; color:#64748b;'>Dates: {ipo['issue_dates'][:11]}</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            c2.markdown(
+                f"<div class='hud-card'>"
+                f"<div style='font-size:0.72rem; color:#94a3b8;'>LOT SIZE & MIN BID</div>"
+                f"<div class='number-font' style='font-size:1.05rem; font-weight:700;'>{ipo['lot_size']} shares</div>"
+                f"<div style='font-size:0.75rem; color:#94a3b8;'>Min Invest: ₹{ipo['min_investment']:,}</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            c3.markdown(
+                f"<div class='hud-card'>"
+                f"<div style='font-size:0.72rem; color:#94a3b8;'>TOTAL ISSUE SIZE</div>"
+                f"<div class='number-font' style='font-size:1.05rem; font-weight:700;'>₹{ipo['issue_size_crores']:,} Cr</div>"
+                f"<div style='font-size:0.75rem; color:#c084fc;'>Fresh: ₹{ipo['fresh_issue_crores']:,} Cr | OFS: ₹{ipo['ofs_crores']:,} Cr</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            c4.markdown(
+                f"<div class='hud-card'>"
+                f"<div style='font-size:0.72rem; color:#94a3b8;'>GREY MARKET (GMP)</div>"
+                f"<div class='number-font' style='font-size:1.05rem; font-weight:700; color:#34d399;'>{ipo['gmp_premium']}</div>"
+                f"<div style='font-size:0.75rem; color:#10b981;'>Expected Listing Gain</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            # Financial Turnover & Profit Sub-table
+            st.markdown(
+                f"<div style='margin-top:12px; background:rgba(10,14,24,0.6); padding:12px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);'>"
+                f"<div style='font-size:0.8rem; font-weight:700; color:#cbd5e1; margin-bottom:6px;'>📈 3-YEAR AUDITED FINANCIAL STATEMENTS (TURNOVER & PROFITABILITY)</div>"
+                f"<div style='display:flex; justify-content:space-between; flex-wrap:wrap; font-size:0.85rem;'>"
+                f"<div><b>Annual Turnover (Revenue):</b> {' • '.join([f'{k}: {v}' for k,v in rev.items()])}</div>"
+                f"<div><b>Net Profit (PAT):</b> {' • '.join([f'{k}: {v}' for k,v in pat.items()])}</div>"
+                f"</div>"
+                f"<div style='margin-top:6px; font-size:0.8rem; color:#94a3b8;'>"
+                f"EBITDA Margin: <b style='color:#f8fafc;'>{fin.get('ebitda_margin_fy24', 'N/A')}</b> | "
+                f"Valuation P/E: <b style='color:#f8fafc;'>{fin.get('pe_at_upper_band', 'N/A')}</b> | "
+                f"Debt/Equity: <b style='color:#f8fafc;'>{fin.get('debt_to_equity', 'N/A')}</b>"
+                f"</div>"
+                f"<div style='margin-top:8px; font-size:0.8rem; color:#cbd5e1;'>"
+                f"<b>Core Strengths:</b> {ipo.get('key_strengths')}<br>"
+                f"<b>Objectives of Issue:</b> {ipo.get('objectives_of_issue')}"
+                f"</div>"
+                f"</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+            st.write("")
+
+# ----------------- TAB 3: MARKET SECTOR TREEMAP -----------------
 with tab_treemap:
     st.subheader("🗺️ Indian Market Sector Treemap (NIFTY Heatmap)")
     st.caption("Visual heat map of key Indian equities grouped by industry sectors, sized by capitalization and color-coded by daily performance.")

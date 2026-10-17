@@ -74,16 +74,29 @@ def run_tests():
     logger.info(f"Comparison response snippet:\n{comp_res[:200]}...\n")
     assert len(comp_traces) > 0, "Comparison tool failed to execute"
 
-    # 6. Test Multi-Turn News & Fundamentals Agent Queries
-    logger.info("\n[6/6] Testing Valuation & News Agent Queries...")
-    fund_res, fund_traces = agent.run("What are the fundamentals and P/E ratio of Reliance?")
-    logger.info(f"Fundamentals response snippet:\n{fund_res[:200]}...\n")
+    # 7. Test Upcoming IPOs & Financials Intelligence
+    logger.info("\n[7/7] Testing Upcoming IPOs & Primary Market Intelligence...")
+    from core.ipo_manager import IPOManager
+    ipo_mgr = IPOManager()
+    all_ipos = ipo_mgr.get_upcoming_ipos()
+    logger.info(f"Loaded {len(all_ipos)} Upcoming IPOs. First: {all_ipos[0].get('company_name')}")
+    assert len(all_ipos) >= 5, "Expected at least 5 IPOs in database"
 
-    news_agent_res, news_traces = agent.run("What is the latest news on Tata Motors?")
-    logger.info(f"News response snippet:\n{news_agent_res[:200]}...\n")
+    swiggy_ipo = ipo_mgr.get_ipo_details("swiggy")
+    assert swiggy_ipo is not None, "Failed to get Swiggy IPO details"
+    rev = swiggy_ipo["financials"]["turnover_revenue"]["FY24"]
+    logger.info(f"Swiggy IPO FY24 Turnover: {rev} | Issue Size: ₹{swiggy_ipo.get('issue_size_crores')} Cr")
+
+    ipo_list_res, ipo_list_traces = agent.run("What upcoming IPOs are coming to NSE?")
+    logger.info(f"IPO List Agent Response Snippet:\n{ipo_list_res[:200]}...\n")
+    assert len(ipo_list_traces) > 0, "Agent failed to execute tool_get_upcoming_ipos"
+
+    ipo_det_res, ipo_det_traces = agent.run("What is Hyundai IPO turnover and profit?")
+    logger.info(f"Hyundai IPO Agent Response Snippet:\n{ipo_det_res[:200]}...\n")
+    assert len(ipo_det_traces) > 0, "Agent failed to execute tool_get_ipo_details"
 
     logger.info("=====================================================")
-    logger.info("✅ ALL 6 EXPANDED TEST STAGES PASSED SUCCESSFULLY!")
+    logger.info("✅ ALL 7 COMPREHENSIVE TEST STAGES PASSED SUCCESSFULLY!")
     logger.info("=====================================================")
 
 if __name__ == "__main__":

@@ -65,7 +65,9 @@ class IndianStockRAGAgent:
             self.tools_registry.tool_compare_stocks,
             self.tools_registry.tool_search_company_knowledge,
             self.tools_registry.tool_manage_watchlist_and_memory,
-            self.tools_registry.tool_get_market_overview
+            self.tools_registry.tool_get_market_overview,
+            self.tools_registry.tool_get_upcoming_ipos,
+            self.tools_registry.tool_get_ipo_details
         ]
 
     def _execute_tool(self, name: str, args: Dict[str, Any]) -> Any:
@@ -79,6 +81,8 @@ class IndianStockRAGAgent:
             "tool_search_company_knowledge": self.tools_registry.tool_search_company_knowledge,
             "tool_manage_watchlist_and_memory": self.tools_registry.tool_manage_watchlist_and_memory,
             "tool_get_market_overview": self.tools_registry.tool_get_market_overview,
+            "tool_get_upcoming_ipos": self.tools_registry.tool_get_upcoming_ipos,
+            "tool_get_ipo_details": self.tools_registry.tool_get_ipo_details,
         }
         fn = tool_map.get(name)
         if not fn:
@@ -157,7 +161,12 @@ class IndianStockRAGAgent:
 
                 response = chat.send_message(function_responses)
 
-            final_text = response.text or "I processed your request with live market data."
+                # Ensure we have a non-empty response
+                if not response.text and not response.function_calls:
+                    final_text = "I couldn't find a direct answer to your query, but I'm here to help! Please rephrase or ask about a specific stock, market overview, or IPO details."
+                else:
+                    final_text = response.text or "I processed your request with live market data."
+
             
             symbols = [t["args"].get("symbol") for t in tool_traces if "symbol" in t.get("args", {}) and t["args"]["symbol"]]
             self.memory.record_interaction(user_query, final_text, [s for s in symbols if s])
@@ -205,6 +214,78 @@ class IndianStockRAGAgent:
                 for i in items:
                     table_lines.append(f"| **{i['symbol']}** | {i['company_name']} | {i['added_at'][:10]} | {i['notes'] or '-'} |")
                 text = "### 📋 Your Persistent Watchlist\n\n" + "\n".join(table_lines)
+            return text, tool_traces
+
+        # 2.5 Upcoming IPOs & IPO Details Intent
+        if "ipo" in lower or "primary market" in lower:
+            # Check if a specific IPO company is mentioned
+            ipo_companies = {
+                "hyundai": "Hyundai",
+                "swiggy": "Swiggy",
+                "ntpc": "NTPC Green",
+                "waaree": "Waaree",
+                "afcons": "Afcons",
+                "hero fincorp": "Hero Fincorp",
+                "mobikwik": "Mobikwik"
+            }
+            target_ipo = None
+            for k, v in ipo_companies.items():
+                if k in lower:
+                    target_ipo = v
+                    break
+
+            if target_ipo:
+                ipo = self.tools_registry.tool_get_ipo_details(target_ipo)
+                tool_traces.append({"tool": "tool_get_ipo_details", "args": {"company_name_or_keyword": target_ipo}, "output": ipo})
+                
+                if "error" not in ipo:
+                    fin = ipo.get("financials", {})
+                    rev = fin.get("turnover_revenue", {})
+                    pat = fin.get("net_profit_pat", {})
+                    
+                    rev_text = " | ".join([f"**{yr}**: {val}" for yr, val in rev.items()]) if rev else "N/A"
+                    pat_text = " | ".join([f"**{yr}**: {val}" for yr, val in pat.items()]) if pat else "N/A"
+                    
+                    text = (
+                        f"### 🚀 {ipo.get('company_name')} — Upcoming IPO Dossier\n\n"
+                        f"- **Sector / Industry**: {ipo.get('sector')}\n"
+                        f"- **Status & Bidding Dates**: `{ipo.get('status')}` • **{ipo.get('issue_dates')}** (Listing: {ipo.get('listing_date')})\n"
+                        f"- **Price Band**: **{ipo.get('price_band')}** | **Lot Size**: {ipo.get('lot_size')} shares (~₹{ipo.get('min_investment'):,})\n"
+                        f"- **Total Issue Size**: **₹{ipo.get('issue_size_crores'):,} Crores** (Fresh: ₹{ipo.get('fresh_issue_crores'):,} Cr | OFS: ₹{ipo.get('ofs_crores'):,} Cr)\n"
+                        f"- **Grey Market Premium (GMP)**: **{ipo.get('gmp_premium')}**\n\n"
+                        f"#### 📊 Multi-Year Turnover & Profitability Metrics:\n"
+                        f"- **Annual Turnover (Revenue)**: {rev_text}\n"
+                        f"- **Net Profit After Tax (PAT)**: {pat_text}\n"
+                        f"- **EBITDA Margin**: {fin.get('ebitda_margin_fy24', 'N/A')} | **ROE / RoNW**: {fin.get('ronw_roe_fy24', 'N/A')}\n"
+                        f"- **Valuation P/E Ratio**: {fin.get('pe_at_upper_band', 'N/A')}\n\n"
+                        f"#### 💡 Business Strengths & Moats:\n"
+                        f"{ipo.get('key_strengths', '')}\n\n"
+                        f"#### 🎯 Objectives of the Issue:\n"
+                        f"{ipo.get('objectives_of_issue', '')}\n\n"
+                        f"> *Disclaimer: Educational primary market analysis only; not SEBI-registered IPO subscription recommendation. All equity investments are subject to market risks.*"
+                    )
+                    return text, tool_traces
+            
+            # General Upcoming IPOs list
+            ipo_res = self.tools_registry.tool_get_upcoming_ipos()
+            tool_traces.append({"tool": "tool_get_upcoming_ipos", "args": {"status": "all"}, "output": ipo_res})
+            ipos = ipo_res.get("ipos", [])
+            
+            table_lines = [
+                "| Company | Sector | Bidding Dates | Price Band | Issue Size (₹ Cr) | Min Lot | GMP Gain |",
+                "|---|---|---|---|---|---|---|"
+            ]
+            for i in ipos:
+                table_lines.append(
+                    f"| **{i['company']}** | {i['sector']} | {i['dates']} | {i['price_band']} | ₹{i['issue_size_cr']:,} Cr | {i['lot_size']} sh | {i['gmp_expected_gain']} |"
+                )
+            
+            text = (
+                f"### 🚀 Upcoming Indian IPOs on NSE/BSE\n\n"
+                f"Found **{len(ipos)}** major upcoming and active public offerings with confirmed financial disclosures:\n\n"
+                + "\n".join(table_lines) + "\n\n"
+                f"💡 *Ask e.g. 'What is Swiggy IPO turnover and profit?' or 'Explain Hyundai IPO valuation' for full multi-year financial statements.*"
+            )
             return text, tool_traces
 
         # 3. Stock Comparison Intent (e.g., "Compare TCS and Infosys" or "Compare it with TCS")

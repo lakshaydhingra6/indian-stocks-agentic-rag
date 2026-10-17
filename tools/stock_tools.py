@@ -3,18 +3,20 @@ from core.nse_client import NSEClient
 from core.technicals import TechnicalAnalyzer
 from core.memory_manager import DualTierMemoryManager
 from core.vector_store import StockKnowledgeStore
+from core.ipo_manager import IPOManager
 
 class StockToolsRegistry:
     """
     Registry of high-level tools executed by the Agentic RAG engine.
     Integrates live NSE data, technical indicator analysis, fundamental valuation ratios,
-    live financial news RSS, dual-tier memory, and local semantic knowledge retrieval.
+    live financial news RSS, upcoming IPO intelligence, dual-tier memory, and local semantic knowledge retrieval.
     """
 
-    def __init__(self, nse: NSEClient, memory: DualTierMemoryManager, knowledge: StockKnowledgeStore):
+    def __init__(self, nse: NSEClient, memory: DualTierMemoryManager, knowledge: StockKnowledgeStore, ipo_mgr: Optional[IPOManager] = None):
         self.nse = nse
         self.memory = memory
         self.knowledge = knowledge
+        self.ipo_mgr = ipo_mgr or IPOManager()
 
     def tool_get_live_quote(self, symbol: str) -> Dict[str, Any]:
         """
@@ -174,4 +176,47 @@ class StockToolsRegistry:
         return {
             "market_status": status,
             "indices": indices
+        }
+
+    def tool_get_upcoming_ipos(self, status: str = "all") -> Dict[str, Any]:
+        """
+        Fetches the active and upcoming Indian IPOs (Initial Public Offerings) coming to NSE/BSE.
+        Returns company names, sectors, issue dates, price bands, issue size (₹ Cr), and GMP expected gains.
+        Args:
+            status: Filter by 'all', 'upcoming', or 'active'.
+        """
+        ipos = self.ipo_mgr.get_upcoming_ipos(status=status)
+        return {
+            "count": len(ipos),
+            "ipos": [
+                {
+                    "company": i["company_name"],
+                    "sector": i["sector"],
+                    "dates": i["issue_dates"],
+                    "price_band": i["price_band"],
+                    "issue_size_cr": i["issue_size_crores"],
+                    "lot_size": i["lot_size"],
+                    "gmp_expected_gain": i["gmp_premium"],
+                    "status": i["status"]
+                }
+                for i in ipos
+            ]
+        }
+
+    def tool_get_ipo_details(self, company_name_or_keyword: str) -> Dict[str, Any]:
+        """
+        Fetches comprehensive financials, 3-year turnover / revenue, net profits (PAT),
+        EBITDA, valuation P/E, key moats, and objectives of the issue for an upcoming Indian IPO.
+        Args:
+            company_name_or_keyword: Company name or ticker (e.g. 'Swiggy', 'Hyundai', 'NTPC Green', 'Waaree', 'Afcons').
+        """
+        details = self.ipo_mgr.get_ipo_details(company_name_or_keyword)
+        if details:
+            return details
+        # Fallback search
+        results = self.ipo_mgr.search_ipos(company_name_or_keyword)
+        if results:
+            return results[0]
+        return {
+            "error": f"No IPO data found matching '{company_name_or_keyword}'. Available IPOs: Hyundai, Swiggy, NTPC Green, Waaree Energies, Afcons Infrastructure, Hero Fincorp."
         }
