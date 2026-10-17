@@ -46,5 +46,65 @@
     "title": "Bharti Airtel ARPU Growth & 5G Rollout",
     "content": "Bharti Airtel is a premier telecommunications provider in India and Africa. Airtel boasts the highest ARPU (Average Revenue Per User) in the Indian telecom sector (> \u20b9200), expanding home broadband (Xstream Fiber) and Airtel Business enterprise solutions.",
     "category": "Telecom"
+  },
+  {
+    "symbol": "SBIN",
+    "title": "State Bank of India (SBI) Credit Growth & YONO Dominance",
+    "content": "State Bank of India is the nation's premier public sector lender, accounting for over one-fifth of India's banking assets. Strong retail home loans, robust corporate credit underwriting, and digital customer onboarding via the YONO mobile platform drive record net interest margins (NIM).",
+    "category": "PSU Banking"
+  },
+  {
+    "symbol": "HAL",
+    "title": "Hindustan Aeronautics Limited (HAL) Defense Order Book",
+    "content": "HAL is India's sole aerospace manufacturing defense PSU, producing Tejas Light Combat Aircraft (LCA Mk1A), Prachand Light Combat Helicopters (LCH), and Sukhoi Su-30 upgrades. HAL holds a robust multi-year order book of over \u20b990,000 Crores driven by India's indigenization and Make-in-India defense policies.",
+    "category": "Defense & Aerospace"
+  },
+  {
+    "symbol": "BEL",
+    "title": "Bharat Electronics Limited (BEL) Defense Electronics",
+    "content": "Bharat Electronics is India's leading defense electronics PSU, supplying advanced radars, missile guidance systems, naval sonars, electronic warfare suites, and civilian EVMs. BEL maintains debt-free balance sheet, high Return on Capital Employed (ROCE > 25%), and strong order inflow from armed forces.",
+    "category": "Defense & Electronics"
+  },
+  {
+    "symbol": "IRFC",
+    "title": "Indian Railway Finance Corporation (IRFC) Lending Pipeline",
+    "content": "IRFC is the dedicated market borrowing arm of the Indian Railways under the Ministry of Railways. It finances rolling stock assets (locomotives, coaches) and railway infrastructure projects. It boasts 100% sovereign-backed exposure with virtually zero Non-Performing Assets (NPAs).",
+    "category": "Railways & PSU"
+  },
+  {
+    "symbol": "RVNL",
+    "title": "Rail Vikas Nigam Limited (RVNL) Metro & EPC Expansion",
+    "content": "RVNL executes turnkey railway infrastructure projects including new line construction, doubling, gauge conversion, railway electrification, and metro projects. It has expanded internationally into Central Asia and the Middle East.",
+    "category": "Railways & Infra"
+  },
+  {
+    "symbol": "ZOMATO",
+    "title": "Zomato Food Delivery & Blinkit Quick Commerce Hypergrowth",
+    "content": "Zomato is India's leading consumer tech platform. While food delivery provides stable cash flows with expanding contribution margins, its quick commerce arm 'Blinkit' is experiencing 100%+ YoY gross order value growth, rapidly adding dark stores across Tier 1 and Tier 2 Indian cities.",
+    "category": "Consumer Tech"
+  },
+  {
+    "symbol": "TRENT",
+    "title": "Trent Ltd (Tata Retail) Zudio Scaling & Retail Dominance",
+    "content": "Trent, the retail arm of the Tata Group, is experiencing explosive retail growth led by its value-fashion brand 'Zudio'. Zudio's rapid weekly inventory refresh, aggressive store rollout, and high sales per square foot have made Trent one of the highest compounders on the Indian bourses.",
+    "category": "Retail & Fashion"
+  },
+  {
+    "symbol": "LT",
+    "title": "Larsen & Toubro (L&T) Mega Infrastructure Order Inflows",
+    "content": "L&T is India's premier engineering, procurement, and construction (EPC) conglomerate. Its core order book exceeds \u20b94.5 lakh crore spanning railways, renewable energy, green hydrogen plants, hydrocarbons in the Middle East, and high-speed rail corridors.",
+    "category": "Infrastructure"
+  },
+  {
+    "symbol": "SUNPHARMA",
+    "title": "Sun Pharmaceutical Global Specialty Pipeline & Formulations",
+    "content": "Sun Pharma is India's largest pharmaceutical company and the 4th largest global specialty generic firm. It leads the domestic formulations market with strong brand equity and continues expanding its high-margin global specialty dermatology and ophthalmology portfolio (Ilumya, Cequa, Winlevi).",
+    "category": "Pharma & Healthcare"
+  },
+  {
+    "symbol": "BAJFINANCE",
+    "title": "Bajaj Finance Digital Omnichannel & Asset Franchise",
+    "content": "Bajaj Finance is India's largest non-banking financial company (NBFC). Known for its proprietary customer credit database, consumer durable zero-cost EMI financing, and the Bajaj Finserv mobile super-app, it maintains industry-leading AUM growth with strong asset quality.",
+    "category": "Financial Services & NBFC"
   }
 ]

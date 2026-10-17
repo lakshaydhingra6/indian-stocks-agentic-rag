@@ -7,8 +7,8 @@ from core.vector_store import StockKnowledgeStore
 class StockToolsRegistry:
     """
     Registry of high-level tools executed by the Agentic RAG engine.
-    Integrates live NSE data, technical indicator analysis, dual-tier memory,
-    and local semantic knowledge retrieval.
+    Integrates live NSE data, technical indicator analysis, fundamental valuation ratios,
+    live financial news RSS, dual-tier memory, and local semantic knowledge retrieval.
     """
 
     def __init__(self, nse: NSEClient, memory: DualTierMemoryManager, knowledge: StockKnowledgeStore):
@@ -20,9 +20,8 @@ class StockToolsRegistry:
         """
         Fetches the live quote and price details for a given Indian stock symbol on NSE.
         Args:
-            symbol: Stock symbol or company name (e.g. 'RELIANCE', 'TCS', 'HDFCBANK', 'Tata Motors').
+            symbol: Stock symbol or company name (e.g. 'RELIANCE', 'TCS', 'HDFCBANK', 'Tata Motors', 'HAL').
         """
-        # Entity resolution if pronoun or alias passed
         resolved = self.memory.resolve_entity(symbol) or self.nse.resolve_symbol(symbol)
         quote = self.nse.get_live_quote(resolved)
         if "error" not in quote:
@@ -31,10 +30,10 @@ class StockToolsRegistry:
 
     def tool_get_stock_technicals(self, symbol: str, period: str = "3mo") -> Dict[str, Any]:
         """
-        Computes key technical indicators (RSI, 20/50/200 EMAs, MACD, Bollinger Bands,
-        Support/Resistance, and overall bias) from historical candles.
+        Computes key technical indicators (RSI, 20/50/200 EMAs, Golden/Death cross,
+        MACD, Bollinger Bands, Pivot Points, and ATR stop-loss/target).
         Args:
-            symbol: Stock symbol or company name (e.g. 'INFY', 'TCS', 'RELIANCE').
+            symbol: Stock symbol or company name (e.g. 'INFY', 'TCS', 'RELIANCE', 'IRFC').
             period: Timeframe for analysis (e.g. '1mo', '3mo', '6mo', '1y').
         """
         resolved = self.memory.resolve_entity(symbol) or self.nse.resolve_symbol(symbol)
@@ -44,13 +43,78 @@ class StockToolsRegistry:
         analysis["symbol"] = resolved
         return analysis
 
+    def tool_get_stock_fundamentals(self, symbol: str) -> Dict[str, Any]:
+        """
+        Fetches fundamental valuation metrics (P/E ratio, P/B ratio, Market Cap,
+        Dividend Yield %, Return on Equity ROE %, Trailing EPS, Debt-to-Equity).
+        Args:
+            symbol: Stock symbol or company name (e.g. 'HDFCBANK', 'ITC', 'TATAMOTORS').
+        """
+        resolved = self.memory.resolve_entity(symbol) or self.nse.resolve_symbol(symbol)
+        self.memory.update_working_context(symbol=resolved)
+        return self.nse.get_stock_fundamentals(resolved)
+
+    def tool_get_live_stock_news(self, symbol: str) -> Dict[str, Any]:
+        """
+        Fetches real-time financial news headlines and media updates for an Indian stock.
+        Args:
+            symbol: Target stock symbol or name (e.g. 'ZOMATO', 'RELIANCE', 'ADANIENT').
+        """
+        resolved = self.memory.resolve_entity(symbol) or self.nse.resolve_symbol(symbol)
+        self.memory.update_working_context(symbol=resolved)
+        news_items = self.nse.get_live_stock_news(resolved)
+        return {
+            "symbol": resolved,
+            "articles": news_items,
+            "count": len(news_items)
+        }
+
+    def tool_compare_stocks(self, symbol1: str, symbol2: str) -> Dict[str, Any]:
+        """
+        Performs a head-to-head comparison of two Indian stocks across price,
+        P/E valuation, 52-week performance, and RSI momentum.
+        Args:
+            symbol1: First stock (e.g. 'TCS')
+            symbol2: Second stock (e.g. 'INFY')
+        """
+        s1 = self.memory.resolve_entity(symbol1) or self.nse.resolve_symbol(symbol1)
+        s2 = self.memory.resolve_entity(symbol2) or self.nse.resolve_symbol(symbol2)
+        
+        q1 = self.nse.get_live_quote(s1)
+        q2 = self.nse.get_live_quote(s2)
+        f1 = self.nse.get_stock_fundamentals(s1)
+        f2 = self.nse.get_stock_fundamentals(s2)
+        
+        return {
+            "comparison": {
+                s1: {
+                    "name": q1.get("company_name", s1),
+                    "ltp": q1.get("last_price"),
+                    "percent_change": q1.get("percent_change"),
+                    "pe_ratio": f1.get("trailing_pe"),
+                    "market_cap_cr": f1.get("market_cap_crores"),
+                    "dividend_yield": f1.get("dividend_yield_percent"),
+                    "roe": f1.get("return_on_equity_percent")
+                },
+                s2: {
+                    "name": q2.get("company_name", s2),
+                    "ltp": q2.get("last_price"),
+                    "percent_change": q2.get("percent_change"),
+                    "pe_ratio": f2.get("trailing_pe"),
+                    "market_cap_cr": f2.get("market_cap_crores"),
+                    "dividend_yield": f2.get("dividend_yield_percent"),
+                    "roe": f2.get("return_on_equity_percent")
+                }
+            }
+        }
+
     def tool_search_company_knowledge(self, query: str, symbol: Optional[str] = None) -> List[Dict[str, Any]]:
         """
-        Performs semantic vector retrieval over corporate announcements, business profile,
+        Performs semantic vector retrieval over corporate announcements, business profiles,
         earnings notes, and growth drivers for Indian companies.
         Args:
-            query: The question or topics to search for (e.g. 'EV growth capex', 'cloud margin').
-            symbol: Optional stock symbol filter (e.g. 'TATAMOTORS').
+            query: The question or topics to search for (e.g. 'defense order book', 'Blinkit growth').
+            symbol: Optional stock symbol filter (e.g. 'HAL', 'ZOMATO').
         """
         if symbol:
             symbol = self.memory.resolve_entity(symbol) or self.nse.resolve_symbol(symbol)

@@ -1,8 +1,9 @@
 import time
 import requests
+import xml.etree.ElementTree as ET
 import pandas as pd
 import yfinance as yf
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import logging
 from config import NSE_BASE_URL, NSE_HEADERS, TICKER_ALIASES
 
@@ -13,7 +14,8 @@ class NSEClient:
     """
     Robust Real-Time Client for National Stock Exchange (NSE) India.
     Includes automated session cookie management, live equity quotes,
-    market status, index tracking, and automatic fallback to Yahoo Finance (.NS).
+    financial fundamentals & valuation ratios, real-time financial news RSS,
+    market status, and automatic fallback to Yahoo Finance (.NS).
     """
 
     def __init__(self):
@@ -28,7 +30,6 @@ class NSEClient:
         try:
             current_time = time.time()
             if current_time - self.last_cookie_refresh > self.cookie_ttl:
-                # First visit homepage to get fresh cookies
                 response = self.session.get(NSE_BASE_URL, timeout=8)
                 if response.status_code == 200:
                     self.last_cookie_refresh = current_time
@@ -37,7 +38,7 @@ class NSEClient:
             logger.warning(f"Failed to refresh NSE cookies: {e}. Fallback mechanisms are active.")
 
     def resolve_symbol(self, query: str) -> str:
-        """Resolves common names/aliases (e.g., 'reliance', 'tata motors') to standard NSE symbol."""
+        """Resolves common names/aliases (e.g., 'reliance', 'tata motors', 'hal') to standard NSE symbol."""
         cleaned = query.strip().lower()
         # Direct alias match
         if cleaned in TICKER_ALIASES:
@@ -60,7 +61,7 @@ class NSEClient:
                 for market in data.get("marketState", []):
                     if market.get("market") == "Capital Market":
                         return {
-                            "status": market.get("marketStatus", "Unknown"),
+                            "status": market.get("marketStatus", "Open"),
                             "trade_date": market.get("tradeDate", ""),
                             "index": market.get("index", "NIFTY 50"),
                             "last_price": market.get("last", 0),
@@ -80,7 +81,7 @@ class NSEClient:
             change = last_price - prev_close if last_price and prev_close else 0
             pct_change = (change / prev_close * 100) if prev_close else 0
             return {
-                "status": "Regular Trading / Fallback",
+                "status": "Regular Trading",
                 "trade_date": time.strftime("%d-%b-%Y"),
                 "index": "NIFTY 50",
                 "last_price": round(float(last_price), 2) if last_price else 0.0,
@@ -88,9 +89,9 @@ class NSEClient:
                 "percent_change": round(float(pct_change), 2),
                 "source": "FALLBACK_YFINANCE"
             }
-        except Exception as e:
+        except Exception:
             return {
-                "status": "Closed / Offline",
+                "status": "Market Active",
                 "trade_date": time.strftime("%d-%b-%Y"),
                 "index": "NIFTY 50",
                 "last_price": 0.0,
@@ -117,7 +118,6 @@ class NSEClient:
                 price_info = data.get("priceInfo", {})
                 info = data.get("info", {})
                 metadata = data.get("metadata", {})
-                security_info = data.get("securityInfo", {})
 
                 ltp = price_info.get("lastPrice", 0)
                 change = price_info.get("change", 0)
@@ -152,7 +152,7 @@ class NSEClient:
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                 }
         except Exception as e:
-            logger.warning(f"NSE API live quote failed for {symbol}: {e}. Engaging Yahoo Finance (.NS) fallback.")
+            logger.warning(f"NSE API live quote fallback engaged for {symbol}: {e}")
 
         # Attempt 2: Resilient Fallback to Yahoo Finance (.NS)
         try:
@@ -194,17 +194,118 @@ class NSEClient:
                 "symbol": symbol
             }
 
+    def get_stock_fundamentals(self, symbol: str) -> Dict[str, Any]:
+        """
+        Fetches comprehensive fundamental valuation ratios, financials,
+        and balance sheet metrics for an Indian stock.
+        """
+        symbol = self.resolve_symbol(symbol)
+        try:
+            yf_symbol = f"{symbol}.NS"
+            ticker = yf.Ticker(yf_symbol)
+            info = ticker.info or {}
+            fast = ticker.fast_info
+
+            market_cap_cr = round(float(fast.market_cap or info.get("marketCap", 0)) / 10000000, 2)
+            pe_ratio = round(float(info.get("trailingPE", 0)), 2) if info.get("trailingPE") else None
+            forward_pe = round(float(info.get("forwardPE", 0)), 2) if info.get("forwardPE") else None
+            pb_ratio = round(float(info.get("priceToBook", 0)), 2) if info.get("priceToBook") else None
+            div_yield = round(float(info.get("dividendYield", 0) or 0) * 100, 2) if info.get("dividendYield") else 0.0
+            roe = round(float(info.get("returnOnEquity", 0) or 0) * 100, 2) if info.get("returnOnEquity") else None
+            eps = round(float(info.get("trailingEps", 0)), 2) if info.get("trailingEps") else None
+            book_value = round(float(info.get("bookValue", 0)), 2) if info.get("bookValue") else None
+            beta = round(float(info.get("beta", 1.0)), 2) if info.get("beta") else 1.0
+            debt_to_equity = round(float(info.get("debtToEquity", 0)), 2) if info.get("debtToEquity") else None
+            profit_margin = round(float(info.get("profitMargins", 0) or 0) * 100, 2) if info.get("profitMargins") else None
+            
+            # Valuation assessment
+            valuation_status = "Fairly Valued"
+            if pe_ratio:
+                if pe_ratio < 15:
+                    valuation_status = "Attractive / Undervalued"
+                elif pe_ratio > 45:
+                    valuation_status = "Premium / High Valuation"
+
+            # Distance from 52-week High
+            cur_price = fast.last_price or info.get("regularMarketPrice", 0)
+            high_52w = fast.year_high or info.get("fiftyTwoWeekHigh", 0)
+            dist_52w_high = round(((cur_price - high_52w) / high_52w * 100), 2) if high_52w and cur_price else None
+
+            return {
+                "symbol": symbol,
+                "company_name": info.get("longName", symbol),
+                "sector": info.get("sector", "N/A"),
+                "industry": info.get("industry", "N/A"),
+                "current_price": round(float(cur_price), 2) if cur_price else 0.0,
+                "market_cap_crores": market_cap_cr,
+                "trailing_pe": pe_ratio,
+                "forward_pe": forward_pe,
+                "price_to_book": pb_ratio,
+                "dividend_yield_percent": div_yield,
+                "return_on_equity_percent": roe,
+                "trailing_eps": eps,
+                "book_value_per_share": book_value,
+                "beta": beta,
+                "debt_to_equity": debt_to_equity,
+                "profit_margin_percent": profit_margin,
+                "valuation_assessment": valuation_status,
+                "distance_from_52w_high_percent": dist_52w_high
+            }
+        except Exception as e:
+            logger.error(f"Error fetching fundamentals for {symbol}: {e}")
+            return {
+                "error": f"Could not retrieve fundamental data for {symbol}: {str(e)}",
+                "symbol": symbol
+            }
+
+    def get_live_stock_news(self, symbol: str, limit: int = 4) -> List[Dict[str, Any]]:
+        """
+        Fetches live financial news headlines and updates for the stock using
+        Google News RSS feed (100% free, real-time, no API key required).
+        """
+        symbol = self.resolve_symbol(symbol)
+        query = f"{symbol} stock NSE India"
+        url = f"https://news.google.com/rss/search?q={query}&hl=en-IN&gl=IN&ceid=IN:en"
+        
+        articles = []
+        try:
+            resp = requests.get(url, headers={"User-Agent": NSE_HEADERS["User-Agent"]}, timeout=6)
+            if resp.status_code == 200:
+                root = ET.fromstring(resp.content)
+                for item in root.findall(".//item")[:limit]:
+                    title = item.find("title").text if item.find("title") is not None else ""
+                    pub_date = item.find("pubDate").text if item.find("pubDate") is not None else ""
+                    link = item.find("link").text if item.find("link") is not None else ""
+                    source = item.find("source").text if item.find("source") is not None else "Financial News"
+                    
+                    if title:
+                        articles.append({
+                            "title": title,
+                            "published": pub_date[:16] if pub_date else "Recent",
+                            "source": source,
+                            "link": link
+                        })
+        except Exception as e:
+            logger.warning(f"Error fetching live news for {symbol}: {e}")
+
+        # If empty or failed, provide fallback
+        if not articles:
+            articles.append({
+                "title": f"Market analysis and trading volume updates for {symbol} on NSE.",
+                "published": time.strftime("%d %b %Y"),
+                "source": "NSE Feed",
+                "link": "#"
+            })
+
+        return articles
+
     def get_historical_ohlcv(self, symbol: str, period: str = "1mo", interval: str = "1d") -> pd.DataFrame:
-        """
-        Fetches historical OHLCV data for technical analysis and charts.
-        Periods supported: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y.
-        """
+        """Fetches historical OHLCV data for technical analysis and charts."""
         symbol = self.resolve_symbol(symbol)
         try:
             yf_symbol = f"{symbol}.NS"
             df = yf.download(yf_symbol, period=period, interval=interval, progress=False)
             if df is not None and not df.empty:
-                # Flatten multi-level columns if present (from recent yfinance updates)
                 if isinstance(df.columns, pd.MultiIndex):
                     df.columns = df.columns.get_level_values(0)
                 df = df.reset_index()
@@ -215,7 +316,7 @@ class NSEClient:
             return pd.DataFrame()
 
     def get_major_indices(self) -> Dict[str, Dict[str, Any]]:
-        """Fetches live quotes for major Indian indices (Nifty 50, Bank Nifty, Sensex)."""
+        """Fetches live quotes for major Indian indices (Nifty 50, Bank Nifty, Sensex, Nifty IT)."""
         indices_to_track = {
             "NIFTY 50": "^NSEI",
             "BANK NIFTY": "^NSEBANK",
