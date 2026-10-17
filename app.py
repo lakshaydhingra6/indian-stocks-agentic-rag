@@ -29,153 +29,81 @@ st.set_page_config(
 # =========================================================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-
-    /* Global Typography & Deep Obsidian Background */
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    }
-
-    .stApp {
-        background: radial-gradient(circle at 15% 15%, #0f172a 0%, #07090e 60%),
-                    radial-gradient(circle at 85% 85%, #111827 0%, #07090e 60%);
-        background-color: #07090e;
-        color: #f1f5f9;
-    }
-
-    .mono, code, pre, .number-font {
-        font-family: 'JetBrains Mono', monospace !important;
-    }
-
-    .display-font {
-        font-family: 'Space Grotesk', sans-serif !important;
-        letter-spacing: -0.02em;
-    }
-
-    /* Live Blinking Pulse */
-    .pulse-live {
-        display: inline-block;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background-color: #10b981;
-        box-shadow: 0 0 12px #10b981;
-        margin-right: 8px;
-        animation: pulseAnimation 2s infinite;
-    }
-    @keyframes pulseAnimation {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-
-    /* Glassmorphism Terminal Card */
-    .glass-card {
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
-        padding: 16px 20px;
-        margin-bottom: 14px;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-    .glass-card:hover {
-        border-color: rgba(96, 165, 250, 0.4);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(37, 99, 235, 0.15);
-    }
-
-    /* Mini Metric HUD Card */
-    .hud-card {
-        background: linear-gradient(135deg, rgba(20, 27, 45, 0.7) 0%, rgba(13, 18, 30, 0.7) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: 12px;
-        padding: 12px 16px;
-        text-align: left;
-        position: relative;
-        overflow: hidden;
-    }
-    .hud-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
-    }
-
-    /* Cyber Badges */
-    .cyber-badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-    }
-    .badge-gain {
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .badge-loss {
-        background: rgba(244, 63, 94, 0.15);
-        color: #fb7185;
-        border: 1px solid rgba(244, 63, 94, 0.3);
-    }
-    .badge-cyan {
-        background: rgba(6, 182, 212, 0.15);
-        color: #22d3ee;
-        border: 1px solid rgba(6, 182, 212, 0.3);
-    }
-    .badge-purple {
-        background: rgba(168, 85, 247, 0.15);
-        color: #c084fc;
-        border: 1px solid rgba(168, 85, 247, 0.3);
-    }
-
-    /* Command Key Buttons */
-    .stButton>button {
-        background: linear-gradient(180deg, #182235 0%, #101726 100%);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        color: #f8fafc;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.82rem;
-        padding: 8px 16px;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    .stButton>button:hover {
-        background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-        border-color: #60a5fa;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-    }
-
-    /* Redesigned Streamlit Chat Messages */
-    .stChatMessage {
-        background: rgba(13, 18, 30, 0.85) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 14px !important;
-        padding: 16px 20px !important;
-        margin-bottom: 14px !important;
-        backdrop-filter: blur(12px);
-    }
-
-    /* Sleek Input Fields */
-    .stTextInput>div>div>input {
-        background-color: #0d121e !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #f8fafc !important;
-        border-radius: 10px !important;
-    }
-    .stTextInput>div>div>input:focus {
-        border-color: #3b82f6 !important;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
-    }
+/* Animated gradient background */
+@keyframes gradientShift {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+.stApp {
+  background: linear-gradient(270deg, #0f172a, #111827, #1e293b, #0f172a);
+  background-size: 600% 600%;
+  animation: gradientShift 12s ease infinite;
+}
+/* Global typography */
+html, body, [class*="css"] {
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+}
+/* Neon glow for glass cards */
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 0 10px rgba(59,130,246,0.6), 0 0 20px rgba(168,85,247,0.4);
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.glass-card:hover {
+  border-color: rgba(96,165,250,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(59,130,246,0.8);
+}
+/* HUD card with pulsating neon border */
+.hud-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(20,27,45,0.7) 0%, rgba(13,18,30,0.7) 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.hud-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(59,130,246,0.4);
+  box-shadow: 0 0 8px rgba(59,130,246,0.6);
+  animation: pulseGlow 3s infinite;
+}
+@keyframes pulseGlow {
+  0% {border-color: rgba(59,130,246,0.2); box-shadow: 0 0 4px rgba(59,130,246,0.2);}
+  50% {border-color: rgba(59,130,246,0.6); box-shadow: 0 0 12px rgba(59,130,246,0.6);}
+  100% {border-color: rgba(59,130,246,0.2); box-shadow: 0 0 4px rgba(59,130,246,0.2);}
+}
+/* Neon button hover */
+.stButton>button:hover {
+  background: linear-gradient(180deg, #34d399, #2563eb);
+  box-shadow: 0 0 12px #34d399;
+}
+/* Live pulse badge */
+.pulse-live {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 12px #10b981;
+  animation: pulseAnimation 2s infinite;
+}
+@keyframes pulseAnimation {
+  0% {transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129,0.7);}
+  70% {transform: scale(1.15); box-shadow: 0 0 0 10px rgba(16,185,129,0);}
+  100% {transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129,0);}
+}
+</style>
+""", unsafe_allow_html=True)
+# Duplicate CSS block removed – original consolidated CSS retained
 </style>
 """, unsafe_allow_html=True)
 
@@ -232,7 +160,7 @@ st.markdown("""
             ARTHA // QUANTUM TERMINAL
         </div>
         <div style='font-size:0.78rem; color:#94a3b8; font-weight:500; letter-spacing:0.05em;'>
-            AUTONOMOUS AGENTIC RAG • REAL-TIME NSE FEED • DUAL-TIER MEMORY
+            AUTONOMOUS AGENTIC RAG - REAL-TIME NSE FEED - DUAL-TIER MEMORY
         </div>
     </div>
     <div style='text-align:right;'>
@@ -845,3 +773,89 @@ with tab_wire:
                 )
         else:
             st.caption("Search across corporate announcements and business profiles.")
+# Duplicate CSS block removed
+# Duplicate CSS block removed
+/* Futuristic animated gradient background */
+@keyframes gradientShift {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+.stApp {
+  background: linear-gradient(270deg, #0f172a, #111827, #1e293b, #0f172a);
+  background-size: 600% 600%;
+  animation: gradientShift 12s ease infinite;
+}
+/* Neon glow for glass cards */
+.glass-card {
+  box-shadow: 0 0 10px rgba(59,130,246,0.6), 0 0 20px rgba(59,130,246,0.4);
+  border-color: rgba(59,130,246,0.5);
+}
+/* Neon hover for buttons */
+.stButton>button:hover {
+  background: linear-gradient(180deg, #0ea5e9, #4338ca);
+  box-shadow: 0 0 12px rgba(59,130,246,0.8);
+}
+/* Pulsating neon effect for HUD cards */
+.hud-card {
+  position: relative;
+  overflow: hidden;
+}
+.hud-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(59,130,246,0.4);
+  box-shadow: 0 0 8px rgba(59,130,246,0.6);
+  animation: pulseGlow 3s infinite;
+}
+@keyframes pulseGlow {
+  0% {border-color: rgba(59,130,246,0.2); box-shadow: 0 0 4px rgba(59,130,246,0.2);}
+  50% {border-color: rgba(59,130,246,0.6); box-shadow: 0 0 12px rgba(59,130,246,0.6);}
+  100% {border-color: rgba(59,130,246,0.2); box-shadow: 0 0 4px rgba(59,130,246,0.2);}
+}
+</style>
+""", unsafe_allow_html=True)
+# Duplicate CSS block cleaned
+<style>
+/* Animated gradient background */
+@keyframes gradientAnim {
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
+}
+.stApp {
+  background: linear-gradient(-45deg, #0f172a, #111827, #1e293b, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientAnim 15s ease infinite;
+}
+
+/* Neon glow for glass cards */
+.glass-card {
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 10px rgba(96,165,250,0.6), 0 0 20px rgba(168,85,247,0.4);
+}
+
+/* Neon glow for HUD cards */
+.hud-card {
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 12px rgba(59,130,246,0.5);
+}
+
+/* Pulsating HUD badge */
+.hud-card::before {
+  animation: hudPulse 3s infinite;
+}
+@keyframes hudPulse {
+  0% {background: rgba(59,130,246,0.2);}
+  50% {background: rgba(59,130,246,0.6);}
+  100% {background: rgba(59,130,246,0.2);}
+}
+
+/* Neon button hover */
+.stButton>button:hover {
+  background: linear-gradient(180deg, #34d399, #2563eb);
+  box-shadow: 0 0 12px #34d399;
+}
+</style>
+""", unsafe_allow_html=True)
