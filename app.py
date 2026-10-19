@@ -776,3 +776,6 @@ with tab_wire:
 
 
 
+
+# Embed the built React frontend
+st.components.v1.html("<iframe src='static/index.html' style='border:none;width:100%;height:80vh;'></iframe>", height=800)

@@ -1,0 +1,81 @@
+/* frontend/src/theme.css */
+
+/* ---------- Google Font imports ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&family=Georgia&display=swap');
+
+/* ---------- Theme variables ---------- */
+:root {
+  /* Colors */
+  --color-primary:   #0d6efd;   /* cool blue */
+  --color-secondary: #6c757d;   /* neutral gray */
+  --color-accent:    #ff6b6b;   /* vibrant chart accent */
+  --color-bg:        #f8f9fa;   /* light background */
+
+  /* Fonts */
+  --font-sans:   "Inter", system-ui, sans-serif;
+  --font-mono:   "JetBrains Mono", monospace;
+  --font-serif:  "Georgia", serif;
+
+  /* Letter spacing (slightly negative) */
+  --letter-spacing: -0.025em;
+
+  /* Border radius */
+  --radius: 0.5rem;
+}
+
+/* ---------- Global reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Base page styling ---------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-secondary);
+  letter-spacing: var(--letter-spacing);
+}
+
+/* ---------- Utility classes (optional) ---------- */
+.text-primary   { color: var(--color-primary); }
+.text-accent    { color: var(--color-accent); }
+.bg-primary     { background: var(--color-primary); }
+.bg-accent      { background: var(--color-accent); }
+.rounded        { border-radius: var(--radius); }
+.mono           { font-family: var(--font-mono); }
+.serif          { font-family: var(--font-serif); }
+
+/* ---------- Example component styling ---------- */
+.app {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  margin: 0 0 1rem;
+  color: var(--color-primary);
+}
+
+/* Paragraphs */
+p {
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+/* Code blocks / monospaced text */
+code, pre {
+  font-family: var(--font-mono);
+  background: #f1f3f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius);
+}
